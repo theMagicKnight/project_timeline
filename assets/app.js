@@ -385,8 +385,32 @@ async function openEintragDetail(id){
     </div>`;
   document.getElementById('modal-footer').innerHTML=`
     <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Schließen</button>
-    ${hatRecht('schreiben')?`<button class="btn btn-accent btn-sm" onclick="schliesseModal();openModal('schritt',{eintrag_id:${e.id}})"><i class="bi bi-plus-lg"></i> Schritt</button>`:''}`;
+    ${hatRecht('schreiben')?`<button class="btn btn-accent btn-sm" onclick="zeigeSchrittFormImModal(${e.id})"><i class="bi bi-plus-lg"></i> Schritt</button>`:''}`;
   oeffneModal();
+}
+
+// Schritt-Formular direkt im Modal anzeigen (kein Modal-Wechsel)
+function zeigeSchrittFormImModal(eintragId) {
+  document.getElementById('modal-title').textContent='Entwicklungsschritt hinzufügen';
+  document.getElementById('modal-body').innerHTML=formSchritt();
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn btn-outline-secondary" onclick="openEintragDetail(${eintragId})"><i class="bi bi-arrow-left me-1"></i> Zurück</button>
+    <button class="btn btn-accent" onclick="speichernSchrittImModal(${eintragId})">Hinzufügen</button>`;
+}
+
+async function speichernSchrittImModal(eintragId) {
+  const t=document.getElementById('f-titel').value.trim();
+  if(!t)return notify('Bitte einen Titel eingeben','error');
+  await api('schritt_erstellen',{
+    eintrag_id:   eintragId,
+    titel:        t,
+    beschreibung: document.getElementById('f-desc').value,
+    phase:        document.getElementById('f-phase').value,
+    datum:        document.getElementById('f-datum').value,
+  });
+  notify('Schritt hinzugefügt');
+  await ladeProjekt(aktivProjekt.id);
+  openEintragDetail(eintragId);
 }
 
 // ============================================================
