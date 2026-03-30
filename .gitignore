@@ -1,0 +1,6 @@
+# Konfigurationsdatei mit sensiblen Zugangsdaten — niemals committen!
+config.php
+ 
+# Sonstige sensible Dateien
+.env
+*.log
