@@ -815,3 +815,10 @@ async function loeschenBenutzer(id){
 //  Start
 // ============================================================
 ladeSidebar();
+
+// ============================================================
+//  Easter Egg — F12 Console
+// ============================================================
+const _cr = decodeURIComponent(atob('wqkgMjAyNiBFbnR3aWNrZWx0IG1pdCBDbGF1ZGUuYWkgKEFudGhyb3BpYykg4oCUIGh0dHBzOi8vY2xhdWRlLmFp').split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+console.log('\n%c' + _cr + '\n', 'color:#7c6af7;font-size:13px;font-weight:600;font-family:monospace');
+console.log('%cHallo Neugieriger! 👋  Schön dass du vorbeischaust.', 'color:#9296a8;font-size:11px;font-family:monospace');

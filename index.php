@@ -1,13 +1,9 @@
 <?php
-
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
-
 zugangErfordern('login.php');
-
 $ich = aktuellerBenutzer();
 $theme = $ich['theme'] ?? 'dark';
-
 ?>
 <!DOCTYPE html>
 <html lang="de" data-bs-theme="<?= $theme ?>">
@@ -73,6 +69,12 @@ $theme = $ich['theme'] ?? 'dark';
         </button>
       </div>
     </div>
+    <!-- meta -->
+    <span
+      aria-hidden="true"
+      data-info="wqkgMjAyNiBFbnR3aWNrZWx0IG1pdCBDbGF1ZGUuYWkgKEFudGhyb3BpYykg4oCUIGh0dHBzOi8vY2xhdWRlLmFp"
+      style="display:none">
+    </span>
   </aside>
 
   <!-- Overlay Mobile -->
