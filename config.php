@@ -13,7 +13,7 @@ define('DB_NAME', 'projekt_timeline');
 //  Beispiel: 'tl_' → Tabellen heißen tl_projekte, tl_rubriken …
 //  Leer lassen ('') wenn du eine eigene Datenbank hast.
 // ============================================================
-define('DB_PREFIX', '');
+define('DB_PREFIX', 'tl_');
 
 // Fertige Tabellennamen — diese überall im Code verwenden
 define('TBL_PROJEKTE',         DB_PREFIX . 'projekte');
