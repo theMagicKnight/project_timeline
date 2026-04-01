@@ -824,6 +824,7 @@ async function loeschenBenutzer(id){
 //  Start
 // ============================================================
 ladeSidebar();
+checkVersion();
 
 // ============================================================
 //  Easter Egg — F12 Console
@@ -831,3 +832,71 @@ ladeSidebar();
 const _cr = decodeURIComponent(atob('wqkgMjAyNiBFbnR3aWNrZWx0IG1pdCBDbGF1ZGUuYWkgKEFudGhyb3BpYykg4oCUIGh0dHBzOi8vY2xhdWRlLmFp').split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
 console.log('\n%c' + _cr + '\n', 'color:#7c6af7;font-size:13px;font-weight:600;font-family:monospace');
 console.log('%cHallo Neugieriger! 👋  Schön dass du vorbeischaust.', 'color:#9296a8;font-size:11px;font-family:monospace');
+
+// ============================================================
+//  Versions-Check — beim Seitenaufruf einmalig prüfen
+// ============================================================
+async function checkVersion() {
+  try {
+    // Cache umgehen mit Timestamp
+    const r = await fetch('version.json?_=' + Date.now());
+    if (!r.ok) return;
+    const data = await r.json();
+    const neueVersion = data.version;
+
+    // Gespeicherte Version aus localStorage holen
+    const alteVersion = localStorage.getItem('app_version');
+
+    if (!alteVersion) {
+      // Erster Aufruf — Version einfach speichern
+      localStorage.setItem('app_version', neueVersion);
+      console.log('%cVersion ' + neueVersion, 'color:#7c6af7;font-size:11px;font-family:monospace');
+      return;
+    }
+
+    if (alteVersion !== neueVersion) {
+      // Neue Version gefunden → Toast anzeigen
+      console.log('%cNeue Version verfügbar: ' + neueVersion + ' (war: ' + alteVersion + ')', 'color:#34d399;font-size:11px;font-family:monospace');
+      zeigeUpdateToast(neueVersion);
+    }
+  } catch (e) {
+    // version.json nicht erreichbar — kein Problem, einfach ignorieren
+  }
+}
+
+function zeigeUpdateToast(version) {
+  // Alten Toast entfernen falls vorhanden
+  document.getElementById('update-toast')?.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'update-toast';
+  toast.style.cssText = `
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; background: var(--surface);
+    border: 1px solid var(--accent); border-radius: 12px;
+    padding: 14px 20px; font-size: .85rem; color: var(--text);
+    box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    display: flex; align-items: center; gap: 14px;
+    animation: slideUp .3s ease; white-space: nowrap;
+  `;
+  toast.innerHTML = `
+    <span style="color:var(--accent)"><i class="bi bi-arrow-repeat"></i></span>
+    <span>Neue Version <strong>${version}</strong> verfügbar</span>
+    <button onclick="aktualisiereApp('${version}')"
+      style="background:var(--accent);color:#fff;border:none;border-radius:8px;
+             padding:6px 14px;font-family:inherit;font-size:.82rem;
+             font-weight:500;cursor:pointer;white-space:nowrap">
+      Jetzt laden
+    </button>
+    <button onclick="this.closest('#update-toast').remove()"
+      style="background:transparent;border:none;color:var(--text3);
+             cursor:pointer;font-size:1rem;padding:0 2px">✕</button>
+  `;
+  document.body.appendChild(toast);
+}
+
+function aktualisiereApp(neueVersion) {
+  localStorage.setItem('app_version', neueVersion);
+  // Hard Reload — kein Cache
+  window.location.reload(true);
+}
