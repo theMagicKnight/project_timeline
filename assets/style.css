@@ -624,3 +624,36 @@ body {
 /* Ausnahmen: Animationen nicht verzögern */
 .mc, .app-toast, .mtt, .proj-item, .eintrag-row { transition: none; }
 .mc { transition: transform .1s, outline .1s; }
+
+/* ============================================================
+   AUTOR-ANZEIGE
+   ============================================================ */
+.rubrik-creator {
+  font-size: .72rem;
+  color: var(--text3);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.rubrik-creator i { font-size: .7rem; }
+
+.eintrag-creator {
+  font-size: .72rem;
+  color: var(--text3);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+.eintrag-creator i { font-size: .7rem; }
+
+.schritt-creator {
+  font-size: .7rem;
+  color: var(--text3);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+.schritt-creator i { font-size: .68rem; }

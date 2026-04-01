@@ -182,13 +182,30 @@ try {
         $recht = projektRecht($pid, $pdo);
         if (!$recht) { http_response_code(403); echo json_encode(['error'=>'Kein Zugang']); exit; }
         $p = $pdo->prepare("SELECT * FROM `" . TBL_PROJEKTE . "` WHERE id=?"); $p->execute([$pid]); $projekt = $p->fetch();
-        $r = $pdo->prepare("SELECT * FROM `" . TBL_RUBRIKEN . "` WHERE projekt_id=? ORDER BY sortierung,erstellt_am");
+
+        $r = $pdo->prepare("
+            SELECT r.*, b.name AS erstellt_von_name
+            FROM `" . TBL_RUBRIKEN . "` r
+            LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id = r.erstellt_von
+            WHERE r.projekt_id=? ORDER BY r.sortierung, r.erstellt_am
+        ");
         $r->execute([$pid]); $rubriken = $r->fetchAll();
+
         foreach ($rubriken as &$rub) {
-            $e = $pdo->prepare("SELECT * FROM `" . TBL_EINTRAEGE . "` WHERE rubrik_id=? ORDER BY sortierung,erstellt_am");
+            $e = $pdo->prepare("
+                SELECT e.*, b.name AS erstellt_von_name
+                FROM `" . TBL_EINTRAEGE . "` e
+                LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id = e.erstellt_von
+                WHERE e.rubrik_id=? ORDER BY e.sortierung, e.erstellt_am
+            ");
             $e->execute([$rub['id']]); $eintraege = $e->fetchAll();
             foreach ($eintraege as &$ent) {
-                $s = $pdo->prepare("SELECT * FROM `" . TBL_SCHRITTE . "` WHERE eintrag_id=? ORDER BY datum,erstellt_am");
+                $s = $pdo->prepare("
+                    SELECT ts.*, b.name AS erstellt_von_name
+                    FROM `" . TBL_SCHRITTE . "` ts
+                    LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id = ts.erstellt_von
+                    WHERE ts.eintrag_id=? ORDER BY ts.datum, ts.erstellt_am
+                ");
                 $s->execute([$ent['id']]); $ent['schritte'] = $s->fetchAll();
             }
             $rub['eintraege'] = $eintraege;
@@ -201,8 +218,8 @@ try {
         $pid   = (int)($input['projekt_id'] ?? 0);
         $recht = projektRecht($pid, $pdo);
         if (!hatRecht($recht, 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
-        $s = $pdo->prepare("INSERT INTO `" . TBL_RUBRIKEN . "` (projekt_id,name,beschreibung) VALUES (?,?,?)");
-        $s->execute([$pid, $input['name'], $input['beschreibung']??'']);
+        $s = $pdo->prepare("INSERT INTO `" . TBL_RUBRIKEN . "` (projekt_id,name,beschreibung,erstellt_von) VALUES (?,?,?,?)");
+        $s->execute([$pid, $input['name'], $input['beschreibung']??'', $ich['id']]);
         echo json_encode(['id' => $pdo->lastInsertId(), 'ok' => true]);
 
     } elseif ($action === 'rubrik_aktualisieren') {
@@ -223,11 +240,11 @@ try {
     } elseif ($action === 'eintrag_erstellen') {
         $row = $pdo->prepare("SELECT projekt_id FROM `" . TBL_RUBRIKEN . "` WHERE id=?"); $row->execute([$input['rubrik_id']]); $r = $row->fetch();
         if (!hatRecht(projektRecht((int)$r['projekt_id'], $pdo), 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
-        $s = $pdo->prepare("INSERT INTO `" . TBL_EINTRAEGE . "` (rubrik_id,titel,beschreibung,phase,phase_datum,farbe) VALUES (?,?,?,?,?,?)");
-        $s->execute([$input['rubrik_id'],$input['titel'],$input['beschreibung']??'',$input['phase']??'idee',$input['phase_datum']?:null,$input['farbe']??'#4f8ef7']);
+        $s = $pdo->prepare("INSERT INTO `" . TBL_EINTRAEGE . "` (rubrik_id,titel,beschreibung,phase,phase_datum,farbe,erstellt_von) VALUES (?,?,?,?,?,?,?)");
+        $s->execute([$input['rubrik_id'],$input['titel'],$input['beschreibung']??'',$input['phase']??'idee',$input['phase_datum']?:null,$input['farbe']??'#4f8ef7',$ich['id']]);
         $eid = $pdo->lastInsertId();
-        $pdo->prepare("INSERT INTO `" . TBL_SCHRITTE . "` (eintrag_id,phase,titel,datum) VALUES (?,?,?,?)")
-            ->execute([$eid,$input['phase']??'idee','Startpunkt: '.$input['titel'],$input['phase_datum']?:date('Y-m-d')]);
+        $pdo->prepare("INSERT INTO `" . TBL_SCHRITTE . "` (eintrag_id,phase,titel,datum,erstellt_von) VALUES (?,?,?,?,?)")
+            ->execute([$eid,$input['phase']??'idee','Startpunkt: '.$input['titel'],$input['phase_datum']?:date('Y-m-d'),$ich['id']]);
         echo json_encode(['id' => $eid, 'ok' => true]);
 
     } elseif ($action === 'eintrag_aktualisieren') {
@@ -248,8 +265,8 @@ try {
     } elseif ($action === 'schritt_erstellen') {
         $row = $pdo->prepare("SELECT r.projekt_id FROM `" . TBL_EINTRAEGE . "` e JOIN `" . TBL_RUBRIKEN . "` r ON r.id=e.rubrik_id WHERE e.id=?"); $row->execute([$input['eintrag_id']]); $r = $row->fetch();
         if (!hatRecht(projektRecht((int)$r['projekt_id'], $pdo), 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
-        $s = $pdo->prepare("INSERT INTO `" . TBL_SCHRITTE . "` (eintrag_id,phase,titel,beschreibung,datum) VALUES (?,?,?,?,?)");
-        $s->execute([$input['eintrag_id'],$input['phase'],$input['titel'],$input['beschreibung']??'',$input['datum']?:null]);
+        $s = $pdo->prepare("INSERT INTO `" . TBL_SCHRITTE . "` (eintrag_id,phase,titel,beschreibung,datum,erstellt_von) VALUES (?,?,?,?,?,?)");
+        $s->execute([$input['eintrag_id'],$input['phase'],$input['titel'],$input['beschreibung']??'',$input['datum']?:null,$ich['id']]);
         $pdo->prepare("UPDATE `" . TBL_EINTRAEGE . "` SET phase=?,phase_datum=? WHERE id=?")
             ->execute([$input['phase'],$input['datum']?:date('Y-m-d'),$input['eintrag_id']]);
         echo json_encode(['id' => $pdo->lastInsertId(), 'ok' => true]);

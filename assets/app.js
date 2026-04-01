@@ -40,6 +40,12 @@ function fmtDate(d) {
 }
 function phaseOrder(p) { return ['idee','start','entwicklung','abschluss'].indexOf(p); }
 
+// Nur Vorname anzeigen (erster Teil des vollständigen Namens)
+function vorname(name) {
+  if (!name) return '';
+  return name.trim().split(' ')[0];
+}
+
 // ============================================================
 //  API
 // ============================================================
@@ -290,6 +296,7 @@ function rubrikCard(r){
       <div class="flex-grow-1 min-w-0">
         <div class="rubrik-name">${esc(r.name)}</div>
         ${r.beschreibung?`<div class="rubrik-desc">${esc(r.beschreibung)}</div>`:''}
+        ${r.erstellt_von_name?`<div class="rubrik-creator"><i class="bi bi-person-fill"></i> ${esc(vorname(r.erstellt_von_name))}</div>`:''}
       </div>
       <div class="d-flex gap-1 flex-shrink-0">
         ${hatRecht('schreiben')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('eintrag',{rubrik_id:${r.id}})"><i class="bi bi-plus-lg"></i></button>`:''}
@@ -314,6 +321,7 @@ function eintragRow(e){
       <div class="eintrag-meta">
         <span class="phase-badge phase-${e.phase}">${PHASEN[e.phase].icon} ${PHASEN[e.phase].label}</span>
         ${e.phase_datum?`<span style="font-size:.73rem;color:var(--text3)">${fmtDate(e.phase_datum)}</span>`:''}
+        ${e.erstellt_von_name?`<span class="eintrag-creator"><i class="bi bi-person-fill"></i> ${esc(vorname(e.erstellt_von_name))}</span>`:''}
         <div class="d-flex gap-1">${pips}</div>
       </div>
     </div>
@@ -342,6 +350,7 @@ function renderTimeline(rubriken){
             <span class="phase-badge phase-${s.phase}">${PHASEN[s.phase].label}</span>
             <span style="font-size:.86rem;font-weight:500">${esc(s.titel)}</span>
             ${s.datum?`<span style="font-size:.73rem;color:var(--text3)">${fmtDate(s.datum)}</span>`:''}
+            ${s.erstellt_von_name?`<span class="schritt-creator"><i class="bi bi-person-fill"></i> ${esc(vorname(s.erstellt_von_name))}</span>`:''}
             ${hatRecht('verwalten')?`<div class="tl-step-actions"><button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="loeschenSchritt(${s.id})"><i class="bi bi-x"></i></button></div>`:''}
           </div>
           ${s.beschreibung?`<div style="font-size:.78rem;color:var(--text3);margin-top:2px;line-height:1.5">${esc(s.beschreibung)}</div>`:''}
