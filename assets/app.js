@@ -197,6 +197,16 @@ function showTab(tab, rubriken) {
 // ============================================================
 //  Aktivitäts-Matrix
 // ============================================================
+
+// Wochen je nach Bildschirmbreite
+function matrixWochen() {
+  const w = window.innerWidth;
+  if (w < 576)  return 26;  // Smartphone  → 6 Monate
+  if (w < 992)  return 52;  // Tablet      → 12 Monate
+  if (w < 1400) return 52;  // Desktop     → 12 Monate
+  return 104;               // Großer Monitor → 24 Monate
+}
+
 function renderMatrix(rubriken) {
   const content = document.getElementById('content');
   const rawMap  = {};
@@ -206,8 +216,9 @@ function renderMatrix(rubriken) {
     (e.schritte||[]).forEach(s=>addDay(s.datum||s.erstellt_am));
   }));
 
+  const wochen = matrixWochen();
   const today=new Date(); today.setHours(0,0,0,0);
-  const start=new Date(today); start.setDate(start.getDate()-start.getDay()-52*7);
+  const start=new Date(today); start.setDate(start.getDate()-start.getDay()-wochen*7);
   const vals=Object.values(rawMap).map(Number);
   const maxVal=vals.length?Math.max(...vals):1;
   function lv(n){if(!n)return 0;if(n<=maxVal*.25)return 1;if(n<=maxVal*.5)return 2;if(n<=maxVal*.75)return 3;return 4;}
@@ -239,10 +250,12 @@ function renderMatrix(rubriken) {
   const phasebar=Object.entries(counts).map(([p,n])=>`<div style="flex:${n||0.3};background:${pColors[p]}"></div>`).join('');
   const phaseLegend=Object.entries(counts).map(([p,n])=>`<div class="phasebar-item"><span style="width:7px;height:7px;border-radius:50%;background:${pColors[p]};display:inline-block;flex-shrink:0"></span>${PHASEN[p].icon} ${PHASEN[p].label} <span style="color:var(--text3)">${n}</span></div>`).join('');
 
+  const matrixTitel = wochen <= 26 ? '6 Monate' : wochen <= 52 ? '12 Monate' : '24 Monate';
+
   content.innerHTML=`
     <div class="matrix-wrap">
       <div class="matrix-header">
-        <div class="matrix-title"><i class="bi bi-grid-3x3-gap me-1"></i>Aktivität · letzte 12 Monate</div>
+        <div class="matrix-title"><i class="bi bi-grid-3x3-gap me-1"></i>Aktivität · letzte ${matrixTitel}</div>
         <div class="matrix-stats">${totalAkt} Aktivitäten &middot; ${aktivTage} aktive Tage</div>
       </div>
       <div class="matrix-scroll"><div class="matrix-outer">
@@ -825,6 +838,18 @@ async function loeschenBenutzer(id){
 // ============================================================
 ladeSidebar();
 checkVersion();
+
+// Matrix bei Fenstergrößenänderung neu rendern
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (aktiverTab === 'matrix' && aktivProjekt) {
+      api('projekt_detail', null, `&id=${aktivProjekt.id}`)
+        .then(d => renderMatrix(d.rubriken));
+    }
+  }, 300); // 300ms debounce — nicht bei jedem Pixel neu laden
+});
 
 // ============================================================
 //  Easter Egg — F12 Console
