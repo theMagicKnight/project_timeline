@@ -277,6 +277,60 @@ try {
         $pdo->prepare("DELETE FROM `" . TBL_SCHRITTE . "` WHERE id=?")->execute([$input['id']]);
         echo json_encode(['ok' => true]);
 
+    // ===== ANHÄNGE ===========================================
+
+    } elseif ($action === 'anhang_laden') {
+        // Alle Anhänge für einen Eintrag oder Schritt laden
+        $typ = in_array($input['typ'] ?? '', ['eintrag','schritt']) ? $input['typ'] : 'eintrag';
+        $rid = (int)($input['referenz_id'] ?? 0);
+        $s = $pdo->prepare("
+            SELECT a.*, b.name AS erstellt_von_name
+            FROM `" . TBL_ANHAENGE . "` a
+            LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id = a.erstellt_von
+            WHERE a.typ=? AND a.referenz_id=?
+            ORDER BY a.erstellt_am
+        ");
+        $s->execute([$typ, $rid]);
+        echo json_encode($s->fetchAll());
+
+    } elseif ($action === 'anhang_erstellen') {
+        // Recht prüfen über Projekt-Zugehörigkeit
+        $typ = in_array($input['typ'] ?? '', ['eintrag','schritt']) ? $input['typ'] : 'eintrag';
+        $rid = (int)($input['referenz_id'] ?? 0);
+
+        if ($typ === 'eintrag') {
+            $row = $pdo->prepare("SELECT r.projekt_id FROM `" . TBL_EINTRAEGE . "` e JOIN `" . TBL_RUBRIKEN . "` r ON r.id=e.rubrik_id WHERE e.id=?");
+        } else {
+            $row = $pdo->prepare("SELECT r.projekt_id FROM `" . TBL_SCHRITTE . "` ts JOIN `" . TBL_EINTRAEGE . "` e ON e.id=ts.eintrag_id JOIN `" . TBL_RUBRIKEN . "` r ON r.id=e.rubrik_id WHERE ts.id=?");
+        }
+        $row->execute([$rid]); $r = $row->fetch();
+        if (!hatRecht(projektRecht((int)$r['projekt_id'], $pdo), 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
+
+        $titel   = trim($input['titel']   ?? '');
+        $inhalt  = trim($input['inhalt']  ?? '');
+        $sprache = trim($input['sprache'] ?? 'plaintext');
+        if (!$titel || !$inhalt) { echo json_encode(['error' => 'Titel und Inhalt erforderlich']); exit; }
+
+        $s = $pdo->prepare("INSERT INTO `" . TBL_ANHAENGE . "` (typ, referenz_id, titel, sprache, inhalt, erstellt_von) VALUES (?,?,?,?,?,?)");
+        $s->execute([$typ, $rid, $titel, $sprache, $inhalt, $ich['id']]);
+        echo json_encode(['id' => $pdo->lastInsertId(), 'ok' => true]);
+
+    } elseif ($action === 'anhang_loeschen') {
+        $aid = (int)$input['id'];
+        // Projekt ermitteln für Rechte-Check
+        $row = $pdo->prepare("
+            SELECT r.projekt_id FROM `" . TBL_ANHAENGE . "` a
+            LEFT JOIN `" . TBL_EINTRAEGE . "` e ON (a.typ='eintrag' AND e.id=a.referenz_id)
+            LEFT JOIN `" . TBL_SCHRITTE . "` ts ON (a.typ='schritt' AND ts.id=a.referenz_id)
+            LEFT JOIN `" . TBL_EINTRAEGE . "` e2 ON (a.typ='schritt' AND e2.id=ts.eintrag_id)
+            LEFT JOIN `" . TBL_RUBRIKEN . "` r ON (r.id=COALESCE(e.rubrik_id, e2.rubrik_id))
+            WHERE a.id=?
+        ");
+        $row->execute([$aid]); $r = $row->fetch();
+        if (!hatRecht(projektRecht((int)$r['projekt_id'], $pdo), 'verwalten')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
+        $pdo->prepare("DELETE FROM `" . TBL_ANHAENGE . "` WHERE id=?")->execute([$aid]);
+        echo json_encode(['ok' => true]);
+
     } else {
         http_response_code(400);
         echo json_encode(['error' => 'Unbekannte Aktion: '.$action]);

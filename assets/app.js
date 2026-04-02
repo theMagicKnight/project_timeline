@@ -380,12 +380,15 @@ function renderTimeline(rubriken){
 //  Eintrag Detail
 // ============================================================
 async function openEintragDetail(id){
-  const data=await api('projekt_detail',null,`&id=${aktivProjekt.id}`);
+  const [data, anhaenge] = await Promise.all([
+    api('projekt_detail', null, `&id=${aktivProjekt.id}`),
+    api('anhang_laden', {typ:'eintrag', referenz_id:id})
+  ]);
   let e=null;
   data.rubriken.forEach(r=>r.eintraege.forEach(x=>{if(x.id==id)e=x;}));
   if(!e)return;
   const steps=e.schritte||[];
-  setModalSize('normal');
+  setModalSize('lg');
   document.getElementById('modal-title').textContent=e.titel;
   document.getElementById('modal-body').innerHTML=`
     <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
@@ -404,10 +407,17 @@ async function openEintragDetail(id){
         </div>
         ${s.beschreibung?`<div style="font-size:.78rem;color:var(--text3);margin-top:2px">${esc(s.beschreibung)}</div>`:''}
         </div></div>`).join('')}
-    </div>`;
+    </div>
+    ${renderAnhaenge(anhaenge,'eintrag',e.id)}`;
   document.getElementById('modal-footer').innerHTML=`
     <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Schließen</button>
-    ${hatRecht('schreiben')?`<button class="btn btn-accent btn-sm" onclick="zeigeSchrittFormImModal(${e.id})"><i class="bi bi-plus-lg"></i> Schritt</button>`:''}`;
+    ${hatRecht('schreiben')?`
+      <button class="btn btn-outline-secondary btn-sm" onclick="zeigeAnhangFormImModal('eintrag',${e.id})">
+        <i class="bi bi-paperclip"></i> Anhang
+      </button>
+      <button class="btn btn-accent btn-sm" onclick="zeigeSchrittFormImModal(${e.id})">
+        <i class="bi bi-plus-lg"></i> Schritt
+      </button>`:''}`;
   oeffneModal();
 }
 
@@ -433,6 +443,19 @@ async function speichernSchrittImModal(eintragId) {
   notify('Schritt hinzugefügt');
   await ladeProjekt(aktivProjekt.id);
   openEintragDetail(eintragId);
+}
+
+// Anhang-Formular direkt im Modal anzeigen
+function zeigeAnhangFormImModal(typ, refId) {
+  document.getElementById('modal-title').textContent = 'Anhang hinzufügen';
+  document.getElementById('modal-body').innerHTML = formAnhang(typ, refId);
+  document.getElementById('modal-footer').innerHTML = `
+    <button class="btn btn-outline-secondary" onclick="openEintragDetail(${refId})">
+      <i class="bi bi-arrow-left me-1"></i> Zurück
+    </button>
+    <button class="btn btn-accent" onclick="speichernAnhang('${typ}',${refId})">
+      <i class="bi bi-paperclip me-1"></i> Speichern
+    </button>`;
 }
 
 // ============================================================
@@ -831,6 +854,91 @@ async function loeschenBenutzer(id){
   await api('benutzer_loeschen',{id});
   notify('Benutzer gelöscht');
   zurueckZuBenutzerListe();
+}
+
+// ============================================================
+//  Anhänge — Text/Code Snippets
+// ============================================================
+const SPRACHEN = [
+  { val:'plaintext', label:'Text' },
+  { val:'php',       label:'PHP' },
+  { val:'javascript',label:'JavaScript' },
+  { val:'html',      label:'HTML' },
+  { val:'css',       label:'CSS' },
+  { val:'sql',       label:'SQL' },
+  { val:'json',      label:'JSON' },
+  { val:'bash',      label:'Bash' },
+  { val:'python',    label:'Python' },
+];
+
+function sprachOptionen(aktiv='plaintext') {
+  return SPRACHEN.map(s =>
+    `<option value="${s.val}" ${aktiv===s.val?'selected':''}>${s.label}</option>`
+  ).join('');
+}
+
+function formAnhang(typ, refId) {
+  return `
+    <div class="mb-3"><label class="form-label">Titel *</label>
+      <input class="form-control" id="anh-titel" placeholder="z.B. Rollen-Konfiguration"></div>
+    <div class="mb-3"><label class="form-label">Sprache</label>
+      <select class="form-select" id="anh-sprache">${sprachOptionen()}</select></div>
+    <div class="mb-1"><label class="form-label">Inhalt *</label></div>
+    <textarea class="form-control font-mono" id="anh-inhalt" rows="12"
+      style="font-family:monospace;font-size:.82rem;resize:vertical"
+      placeholder="Code oder Text hier einfügen …"></textarea>`;
+}
+
+async function speichernAnhang(typ, refId) {
+  const titel   = document.getElementById('anh-titel').value.trim();
+  const sprache = document.getElementById('anh-sprache').value;
+  const inhalt  = document.getElementById('anh-inhalt').value.trim();
+  if (!titel)  return notify('Bitte Titel eingeben','error');
+  if (!inhalt) return notify('Bitte Inhalt eingeben','error');
+  await api('anhang_erstellen', { typ, referenz_id: refId, titel, sprache, inhalt });
+  notify('Anhang gespeichert');
+  // Zurück zum Eintrag-Detail oder Schritt
+  if (typ === 'eintrag') openEintragDetail(refId);
+  else schliesseModal();
+}
+
+async function loeschenAnhang(id, typ, refId) {
+  if (!confirm('Anhang löschen?')) return;
+  await api('anhang_loeschen', { id });
+  notify('Anhang gelöscht');
+  if (typ === 'eintrag') openEintragDetail(refId);
+  else schliesseModal();
+}
+
+function renderAnhaenge(anhaenge, typ, refId) {
+  if (!anhaenge.length) return '';
+  return `
+    <div class="anhaenge-wrap mt-3">
+      <div class="anh-section-title"><i class="bi bi-paperclip me-1"></i>Anhänge</div>
+      ${anhaenge.map(a => `
+        <div class="anh-card">
+          <div class="anh-card-head">
+            <span class="anh-titel">${esc(a.titel)}</span>
+            <span class="anh-lang-badge">${SPRACHEN.find(s=>s.val===a.sprache)?.label||a.sprache}</span>
+            ${a.erstellt_von_name?`<span class="anh-autor"><i class="bi bi-person-fill"></i> ${esc(vorname(a.erstellt_von_name))}</span>`:''}
+            <div class="ms-auto d-flex gap-1">
+              <button class="btn-copy" onclick="kopiereAnhang(${a.id})" title="Kopieren">
+                <i class="bi bi-clipboard"></i>
+              </button>
+              ${hatRecht('verwalten')?`<button class="btn-copy text-danger-soft" onclick="loeschenAnhang(${a.id},'${typ}',${refId})" title="Löschen">
+                <i class="bi bi-trash"></i>
+              </button>`:''}
+            </div>
+          </div>
+          <pre class="anh-code" id="anh-code-${a.id}"><code>${esc(a.inhalt)}</code></pre>
+        </div>`).join('')}
+    </div>`;
+}
+
+function kopiereAnhang(id) {
+  const el = document.getElementById(`anh-code-${id}`);
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText).then(() => notify('In Zwischenablage kopiert'));
 }
 
 // ============================================================

@@ -103,6 +103,21 @@ try {
         ) ENGINE=InnoDB;
     ");
 
+    // 7. Anhänge (Text/Code-Snippets an Einträge oder Schritte)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `" . TBL_ANHAENGE . "` (
+            id           INT AUTO_INCREMENT PRIMARY KEY,
+            typ          ENUM('eintrag','schritt') NOT NULL,
+            referenz_id  INT NOT NULL,
+            titel        VARCHAR(200) NOT NULL,
+            sprache      VARCHAR(30) DEFAULT 'plaintext',
+            inhalt       LONGTEXT NOT NULL,
+            erstellt_von INT NULL,
+            erstellt_am  DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (erstellt_von) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB;
+    ");
+
     // ---- Spalten nachrüsten falls Tabellen bereits existieren ----
     foreach ([TBL_RUBRIKEN, TBL_EINTRAEGE, TBL_SCHRITTE] as $tbl) {
         $cols = $pdo->query("SHOW COLUMNS FROM `{$tbl}` LIKE 'erstellt_von'")->fetchAll();

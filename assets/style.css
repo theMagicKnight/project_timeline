@@ -657,3 +657,100 @@ body {
   white-space: nowrap;
 }
 .schritt-creator i { font-size: .68rem; }
+
+/* ============================================================
+   ANHÄNGE — Code/Text Snippets
+   ============================================================ */
+.anhaenge-wrap { margin-top: 16px; }
+
+.anh-section-title {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.anh-card {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.anh-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.anh-titel {
+  font-size: .82rem;
+  font-weight: 500;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.anh-lang-badge {
+  font-size: .65rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(124,106,247,.15);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.anh-autor {
+  font-size: .72rem;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.btn-copy {
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: .8rem;
+  transition: all .15s;
+}
+.btn-copy:hover { background: var(--surface); color: var(--accent); }
+
+.anh-code {
+  margin: 0;
+  padding: 12px 14px;
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: .78rem;
+  line-height: 1.6;
+  color: var(--text2);
+  overflow-x: auto;
+  max-height: 320px;
+  overflow-y: auto;
+  white-space: pre;
+  background: transparent;
+  border: none;
+}
+
+.anh-code code {
+  font-family: inherit;
+  font-size: inherit;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+[data-bs-theme="light"] .anh-card     { background: #f8f9fc; border-color: var(--border); }
+[data-bs-theme="light"] .anh-card-head { background: var(--surface2); }
+[data-bs-theme="light"] .anh-code     { color: var(--text2); }
