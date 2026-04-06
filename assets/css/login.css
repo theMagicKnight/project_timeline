@@ -1,0 +1,121 @@
+/* ============================================================
+   login.css — Styles nur für die Login-Seite
+   ============================================================ */
+
+:root {
+  --accent:  #7c6af7;
+  --surface: #16181f;
+  --border:  #2a2d38;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0e0f14;
+}
+
+[data-bs-theme="light"] body { background: #f0f2f8; }
+
+[data-bs-theme="light"] .login-card {
+  background: #ffffff;
+  border-color: #dee1ee;
+  box-shadow: 0 8px 48px rgba(0,0,0,.12);
+}
+
+[data-bs-theme="light"] .form-control,
+[data-bs-theme="light"] .form-select {
+  background: #f5f6fa;
+  border-color: #cdd0e0;
+  color: #1a1c26;
+}
+
+[data-bs-theme="light"] .form-control:focus {
+  background: #ffffff;
+}
+
+[data-bs-theme="light"] .input-group-text {
+  background: #f5f6fa;
+  border-color: #cdd0e0;
+  color: #8a90aa;
+}
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.5);
+}
+
+.login-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.logo-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+
+.login-sub {
+  color: #5c6070;
+  font-size: .8rem;
+  margin-bottom: 28px;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.btn-accent {
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background .15s;
+}
+.btn-accent:hover { background: #5b4de0; color: #fff; }
+
+.form-control,
+.form-select {
+  background: #1e2028;
+  border-color: #353844;
+  color: #e8eaf0;
+  border-radius: 8px;
+}
+.form-control:focus {
+  background: #1e2028;
+  color: #e8eaf0;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,106,247,.2);
+}
+.form-label            { font-size: .8rem; font-weight: 500; color: #9296a8; }
+.form-control::placeholder { color: #5c6070; }
+
+.alert-danger-custom {
+  background: rgba(248,113,113,.12);
+  border: 1px solid rgba(248,113,113,.3);
+  color: #f87171;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: .85rem;
+  margin-bottom: 18px;
+}
+
+.input-group-text {
+  background: #1e2028;
+  border-color: #353844;
+  color: #5c6070;
+}

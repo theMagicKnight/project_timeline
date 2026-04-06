@@ -193,7 +193,9 @@ try {
 
         foreach ($rubriken as &$rub) {
             $e = $pdo->prepare("
-                SELECT e.*, b.name AS erstellt_von_name
+                SELECT e.*, b.name AS erstellt_von_name,
+                    (SELECT COUNT(*) FROM `" . TBL_ANHAENGE . "` a
+                     WHERE a.typ='eintrag' AND a.referenz_id=e.id) AS anhang_count
                 FROM `" . TBL_EINTRAEGE . "` e
                 LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id = e.erstellt_von
                 WHERE e.rubrik_id=? ORDER BY e.sortierung, e.erstellt_am
