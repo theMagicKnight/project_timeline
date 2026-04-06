@@ -1,28 +1,32 @@
 <?php
 // ============================================================
-//  Konfiguration — config.example.php
-//  Diese Datei kopieren → config.php und Werte eintragen
+//  Datenbank-Konfiguration — hier anpassen
 // ============================================================
-
 define('DB_HOST', 'localhost');
-define('DB_USER', 'dein_db_benutzer');
-define('DB_PASS', 'dein_db_passwort');
-define('DB_NAME', 'deine_datenbank');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'projekt_timeline');
 
-// Tabellen-Präfix (bei Strato mit geteilter DB empfohlen)
+// ============================================================
+//  Tabellen-Präfix — bei Strato teilen sich oft mehrere Apps
+//  eine Datenbank. Präfix verhindert Namenskonflikte.
+//  Beispiel: 'tl_' → Tabellen heißen tl_projekte, tl_rubriken …
+//  Leer lassen ('') wenn du eine eigene Datenbank hast.
+// ============================================================
 define('DB_PREFIX', 'tl_');
 
-// Fertige Tabellennamen — nicht ändern
+// Fertige Tabellennamen — diese überall im Code verwenden
 define('TBL_PROJEKTE',         DB_PREFIX . 'projekte');
 define('TBL_RUBRIKEN',         DB_PREFIX . 'rubriken');
 define('TBL_EINTRAEGE',        DB_PREFIX . 'eintraege');
 define('TBL_SCHRITTE',         DB_PREFIX . 'timeline_schritte');
 define('TBL_BENUTZER',         DB_PREFIX . 'benutzer');
 define('TBL_PROJEKT_BENUTZER', DB_PREFIX . 'projekt_benutzer');
+define('TBL_ANHAENGE',         DB_PREFIX . 'anhaenge');
 
 // ============================================================
-//  Erster Admin — nur beim allerersten Aufruf aktiv
-//  Danach diese beiden Zeilen leer lassen oder entfernen!
+//  Erster Admin — wird beim allerersten Aufruf automatisch angelegt
+//  Danach diese Werte leer lassen oder aus der Datei entfernen
 // ============================================================
 define('ADMIN_EMAIL', 'admin@example.com');
-define('ADMIN_PASS',  'sicheres_passwort_hier_eintragen');
+define('ADMIN_PASS',  'admin123');
