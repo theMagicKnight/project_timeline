@@ -35,6 +35,9 @@ $body_class = $body_class ?? '';
   <!-- App CSS -->
   <link rel="stylesheet" href="<?= $base_path ?? '' ?>assets/css/style.css">
 
+  <!-- Highlight.js — Syntax Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
   <?php if ($extra_css): ?>
   <!-- Extra CSS für diese Seite -->
   <link rel="stylesheet" href="<?= htmlspecialchars($extra_css) ?>">

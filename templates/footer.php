@@ -14,6 +14,9 @@ $js_vars    = $js_vars    ?? [];
 <!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Highlight.js — Syntax Highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
 <?php if (!empty($js_vars)): ?>
 <script>
 <?php foreach ($js_vars as $name => $value): ?>

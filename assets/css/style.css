@@ -730,26 +730,28 @@ body {
 
 .anh-code {
   margin: 0;
-  padding: 12px 14px;
-  font-family: 'Courier New', Consolas, monospace;
+  padding: 0;
   font-size: .78rem;
   line-height: 1.6;
-  color: var(--text2);
   overflow-x: auto;
   max-height: 320px;
   overflow-y: auto;
-  white-space: pre;
-  background: transparent;
+  background: #282c34;  /* atom-one-dark Hintergrund */
   border: none;
+  border-radius: 0;
 }
 
+/* highlight.js übernimmt die Code-Färbung */
 .anh-code code {
-  font-family: inherit;
+  font-family: 'Courier New', Consolas, monospace;
   font-size: inherit;
-  background: none;
-  padding: 0;
-  color: inherit;
+  padding: 12px 14px;
+  display: block;
+  background: transparent;
 }
+
+/* Light Theme — highlight.js bleibt dunkel (Code ist immer dunkel) */
+[data-bs-theme="light"] .anh-code { background: #282c34; }
 
 [data-bs-theme="light"] .anh-card     { background: #f8f9fc; border-color: var(--border); }
 [data-bs-theme="light"] .anh-card-head { background: var(--surface2); }

@@ -45,7 +45,7 @@ async function loeschenAnhang(id, typ, refId) {
 
 function renderAnhaenge(anhaenge, typ, refId) {
   if (!anhaenge.length) return '';
-  return `
+  const html = `
     <div class="anhaenge-wrap mt-3">
       <div class="anh-section-title"><i class="bi bi-paperclip me-1"></i>Anhänge</div>
       ${anhaenge.map(a => `
@@ -63,13 +63,25 @@ function renderAnhaenge(anhaenge, typ, refId) {
               </button>`:''}
             </div>
           </div>
-          <pre class="anh-code" id="anh-code-${a.id}"><code>${esc(a.inhalt)}</code></pre>
+          <pre class="anh-code" id="anh-code-${a.id}"><code class="language-${a.sprache}">${esc(a.inhalt)}</code></pre>
         </div>`).join('')}
     </div>`;
+
+  // highlight.js nach dem Einfügen ins DOM aufrufen
+  // Kleiner Timeout damit das HTML erst gerendert ist
+  setTimeout(() => {
+    anhaenge.forEach(a => {
+      const el = document.querySelector(`#anh-code-${a.id} code`);
+      if (el && typeof hljs !== 'undefined') hljs.highlightElement(el);
+    });
+  }, 50);
+
+  return html;
 }
 
 function kopiereAnhang(id) {
   const el = document.getElementById(`anh-code-${id}`);
   if (!el) return;
+  // innerText enthält den reinen Code ohne HTML-Tags
   navigator.clipboard.writeText(el.innerText).then(() => notify('In Zwischenablage kopiert'));
 }
