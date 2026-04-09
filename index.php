@@ -1,5 +1,19 @@
 <?php
+// ============================================================
+//  Installations-Check
+// ============================================================
+if (!file_exists(__DIR__ . '/config.php')) {
+    header('Location: install.php?reason=no_config');
+    exit;
+}
+
 require_once __DIR__ . '/db.php';
+
+if ($db_error) {
+    header('Location: install.php?reason=db_error');
+    exit;
+}
+
 require_once __DIR__ . '/auth.php';
 zugangErfordern('login.php');
 
