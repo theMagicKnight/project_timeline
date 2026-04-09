@@ -1,6 +1,10 @@
 # Konfigurationsdatei mit sensiblen Zugangsdaten — niemals committen!
 config.php
- 
+
 # Sonstige sensible Dateien
 .env
 *.log
+
+# Backup-Ordner — keine sensiblen Daten ins Repo
+backups/*.php
+backups/*.sql
