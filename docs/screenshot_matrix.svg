@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="300" viewBox="0 0 680 300">
+<rect width="680" height="300" rx="12" fill="#0e0f14"/>
+<text x="24" y="32" font-family="monospace" font-size="13" font-weight="600" fill="#e8eaf0">Aktivitat - letzte 12 Monate</text>
+<text x="500" y="32" font-family="monospace" font-size="11" fill="#5c6070">47 Aktivitaten - 23 aktive Tage</text>
+<text x="24" y="58" font-family="monospace" font-size="9" fill="#5c6070">So</text>
+<text x="24" y="74" font-family="monospace" font-size="9" fill="#5c6070">Mo</text>
+<text x="24" y="104" font-family="monospace" font-size="9" fill="#5c6070">Mi</text>
+<text x="24" y="134" font-family="monospace" font-size="9" fill="#5c6070">Fr</text>
+<text x="44" y="38" font-family="monospace" font-size="8" fill="#5c6070">Jan</text>
+<text x="128" y="38" font-family="monospace" font-size="8" fill="#5c6070">Mär</text>
+<text x="212" y="38" font-family="monospace" font-size="8" fill="#5c6070">Mai</text>
+<text x="296" y="38" font-family="monospace" font-size="8" fill="#5c6070">Jul</text>
+<text x="380" y="38" font-family="monospace" font-size="8" fill="#5c6070">Sep</text>
+<text x="464" y="38" font-family="monospace" font-size="8" fill="#5c6070">Nov</text>
+<text x="548" y="38" font-family="monospace" font-size="8" fill="#5c6070">Jan</text>
+<rect x="44" y="44" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="58" y="44" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="72" y="44" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="86" y="44" width="11" height="11" rx="2" fill="#7c6af760"/>
+<rect x="100" y="44" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="114" y="44" width="11" height="11" rx="2" fill="#7c6af7"/>
+<rect x="128" y="44" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="44" y="58" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="58" y="58" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="72" y="58" width="11" height="11" rx="2" fill="#7c6af760"/>
+<rect x="86" y="58" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="100" y="58" width="11" height="11" rx="2" fill="#7c6af7aa"/>
+<rect x="114" y="58" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="128" y="58" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="44" y="72" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="58" y="72" width="11" height="11" rx="2" fill="#7c6af7aa"/>
+<rect x="72" y="72" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="86" y="72" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="100" y="72" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="114" y="72" width="11" height="11" rx="2" fill="#7c6af7"/>
+<rect x="128" y="72" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="44" y="86" width="11" height="11" rx="2" fill="#7c6af760"/>
+<rect x="58" y="86" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="72" y="86" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="86" y="86" width="11" height="11" rx="2" fill="#7c6af7"/>
+<rect x="100" y="86" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="114" y="86" width="11" height="11" rx="2" fill="#7c6af760"/>
+<rect x="128" y="86" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="44" y="100" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="58" y="100" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="72" y="100" width="11" height="11" rx="2" fill="#7c6af7"/>
+<rect x="86" y="100" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="100" y="100" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="114" y="100" width="11" height="11" rx="2" fill="#7c6af7aa"/>
+<rect x="128" y="100" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="44" y="114" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="58" y="114" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="72" y="114" width="11" height="11" rx="2" fill="#7c6af760"/>
+<rect x="86" y="114" width="11" height="11" rx="2" fill="#7c6af7"/>
+<rect x="100" y="114" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="114" y="114" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="128" y="114" width="11" height="11" rx="2" fill="#7c6af7aa"/>
+<rect x="44" y="128" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="58" y="128" width="11" height="11" rx="2" fill="#7c6af7"/>
+<rect x="72" y="128" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="86" y="128" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="100" y="128" width="11" height="11" rx="2" fill="#7c6af760"/>
+<rect x="114" y="128" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="128" y="128" width="11" height="11" rx="2" fill="#7c6af7"/>
+<text x="24" y="162" font-family="monospace" font-size="9" fill="#5c6070">Weniger</text>
+<rect x="72" y="152" width="11" height="11" rx="2" fill="#1e2028"/>
+<rect x="86" y="152" width="11" height="11" rx="2" fill="#7c6af730"/>
+<rect x="100" y="152" width="11" height="11" rx="2" fill="#7c6af760"/>
+<rect x="114" y="152" width="11" height="11" rx="2" fill="#7c6af7aa"/>
+<rect x="128" y="152" width="11" height="11" rx="2" fill="#7c6af7"/>
+<text x="144" y="162" font-family="monospace" font-size="9" fill="#5c6070">Mehr</text>
+<rect x="16" y="178" width="148" height="64" rx="8" fill="#16181f" stroke="#2a2d38" stroke-width="0.5"/>
+<text x="28" y="198" font-family="monospace" font-size="9" fill="#5c6070">Aktive Tage</text>
+<text x="28" y="228" font-family="monospace" font-size="22" font-weight="600" fill="#e8eaf0">23</text>
+<rect x="176" y="178" width="148" height="64" rx="8" fill="#16181f" stroke="#2a2d38" stroke-width="0.5"/>
+<text x="188" y="198" font-family="monospace" font-size="9" fill="#5c6070">Aktivitaten</text>
+<text x="188" y="228" font-family="monospace" font-size="22" font-weight="600" fill="#e8eaf0">47</text>
+<rect x="336" y="178" width="148" height="64" rx="8" fill="#16181f" stroke="#2a2d38" stroke-width="0.5"/>
+<text x="348" y="198" font-family="monospace" font-size="9" fill="#5c6070">Rubriken</text>
+<text x="348" y="228" font-family="monospace" font-size="22" font-weight="600" fill="#e8eaf0">4</text>
+<rect x="496" y="178" width="168" height="64" rx="8" fill="#16181f" stroke="#2a2d38" stroke-width="0.5"/>
+<text x="508" y="198" font-family="monospace" font-size="9" fill="#5c6070">Eintraege</text>
+<text x="508" y="228" font-family="monospace" font-size="22" font-weight="600" fill="#e8eaf0">12</text>
+<text x="16" y="268" font-family="monospace" font-size="10" font-weight="500" fill="#9296a8">Phasen-Ubersicht</text>
+<rect x="16" y="276" width="80" height="8" fill="#f0b429"/>
+<rect x="96" y="276" width="120" height="8" fill="#7c6af7"/>
+<rect x="216" y="276" width="200" height="8" fill="#38bdf8"/>
+<rect x="416" y="276" width="248" height="8" fill="#34d399"/>
+</svg>
