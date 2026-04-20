@@ -24,12 +24,33 @@ function lokaleVersion(): string {
 
 // ---- GitHub API abfragen ----
 function githubRelease(): ?array {
-    $ctx = stream_context_create(['http' => [
-        'method'  => 'GET',
-        'header'  => "User-Agent: ProjektTimeline-Installer\r\n",
-        'timeout' => 8,
-    ]]);
-    $json = @file_get_contents(GITHUB_API, false, $ctx);
+    $json = null;
+
+    // Variante 1: cURL (bevorzugt, funktioniert auch wenn allow_url_fopen = Off)
+    if (function_exists('curl_init')) {
+        $ch = curl_init(GITHUB_API);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_USERAGENT      => 'ProjektTimeline-Installer',
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $json = curl_exec($ch);
+        if (curl_errno($ch)) $json = null;
+        curl_close($ch);
+    }
+
+    // Variante 2: file_get_contents als Fallback
+    if (!$json && ini_get('allow_url_fopen')) {
+        $ctx  = stream_context_create(['http' => [
+            'method'  => 'GET',
+            'header'  => "User-Agent: ProjektTimeline-Installer\r\n",
+            'timeout' => 10,
+        ]]);
+        $json = @file_get_contents(GITHUB_API, false, $ctx);
+    }
+
     if (!$json) return null;
     return json_decode($json, true);
 }
@@ -130,15 +151,31 @@ if (isset($_GET['ajax'])) {
         $zipUrl = $_POST['zip_url'] ?? '';
         if (!$zipUrl) { echo json_encode(['ok'=>false,'msg'=>'Keine ZIP-URL']); exit; }
 
-        // ZIP herunterladen
-        $ctx = stream_context_create(['http'=>[
-            'method'           => 'GET',
-            'header'           => "User-Agent: ProjektTimeline-Installer\r\n",
-            'follow_location'  => true,
-            'timeout'          => 30,
-        ]]);
-        $zipData = @file_get_contents($zipUrl, false, $ctx);
-        if (!$zipData) { echo json_encode(['ok'=>false,'msg'=>'ZIP konnte nicht heruntergeladen werden']); exit; }
+        // ZIP herunterladen — cURL bevorzugt, file_get_contents als Fallback
+        $zipData = null;
+        if (function_exists('curl_init')) {
+            $ch = curl_init($zipUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_USERAGENT      => 'ProjektTimeline-Installer',
+                CURLOPT_TIMEOUT        => 60,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYPEER => true,
+            ]);
+            $zipData = curl_exec($ch);
+            if (curl_errno($ch)) $zipData = null;
+            curl_close($ch);
+        }
+        if (!$zipData && ini_get('allow_url_fopen')) {
+            $ctx = stream_context_create(['http' => [
+                'method'          => 'GET',
+                'header'          => "User-Agent: ProjektTimeline-Installer\r\n",
+                'follow_location' => true,
+                'timeout'         => 60,
+            ]]);
+            $zipData = @file_get_contents($zipUrl, false, $ctx);
+        }
+        if (!$zipData) { echo json_encode(['ok'=>false,'msg'=>'ZIP konnte nicht heruntergeladen werden (cURL und allow_url_fopen nicht verfügbar)']); exit; }
 
         $tmpZip = sys_get_temp_dir() . '/pt_update_' . time() . '.zip';
         file_put_contents($tmpZip, $zipData);
