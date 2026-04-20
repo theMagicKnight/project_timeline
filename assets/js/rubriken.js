@@ -42,6 +42,7 @@ function eintragRow(e){
         ${e.phase_datum?`<span style="font-size:.73rem;color:var(--text3)">${fmtDate(e.phase_datum)}</span>`:''}
         ${e.erstellt_von_name?`<span class="eintrag-creator"><i class="bi bi-person-fill"></i> ${esc(vorname(e.erstellt_von_name))}</span>`:''}
         ${e.anhang_count>0?`<span class="anh-indicator" title="${e.anhang_count} Anhang${e.anhang_count>1?'änge':''}"><i class="bi bi-paperclip"></i> ${e.anhang_count}</span>`:''}
+        ${e.kommentar_count>0?`<span class="kommentar-indicator" title="${e.kommentar_count} Kommentar${e.kommentar_count>1?'e':''}"><i class="bi bi-chat-dots"></i> ${e.kommentar_count}</span>`:''}
         <div class="d-flex gap-1">${pips}</div>
       </div>
     </div>

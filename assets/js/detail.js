@@ -3,9 +3,10 @@
    ============================================================ */
 
 async function openEintragDetail(id){
-  const [data, anhaenge] = await Promise.all([
+  const [data, anhaenge, kommentare] = await Promise.all([
     api('projekt_detail', null, `&id=${aktivProjekt.id}`),
-    api('anhang_laden', {typ:'eintrag', referenz_id:id})
+    api('anhang_laden', {typ:'eintrag', referenz_id:id}),
+    api('kommentare_laden', {typ:'eintrag', referenz_id:id})
   ]);
   let e=null;
   data.rubriken.forEach(r=>r.eintraege.forEach(x=>{if(x.id==id)e=x;}));
@@ -31,7 +32,8 @@ async function openEintragDetail(id){
         ${s.beschreibung?`<div style="font-size:.78rem;color:var(--text3);margin-top:2px">${esc(s.beschreibung)}</div>`:''}
         </div></div>`).join('')}
     </div>
-    ${renderAnhaenge(anhaenge,'eintrag',e.id)}`;
+    ${renderAnhaenge(anhaenge,'eintrag',e.id)}
+    ${renderDiskussion(kommentare,'eintrag',e.id)}`;
   document.getElementById('modal-footer').innerHTML=`
     <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Schließen</button>
     ${hatRecht('schreiben')?`

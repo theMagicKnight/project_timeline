@@ -118,6 +118,34 @@ try {
         ) ENGINE=InnoDB;
     ");
 
+    // 8. Kommentare (Diskussion an Einträge oder Schritte)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `" . TBL_KOMMENTARE . "` (
+            id               INT AUTO_INCREMENT PRIMARY KEY,
+            typ              ENUM('eintrag','schritt') NOT NULL,
+            referenz_id      INT NOT NULL,
+            inhalt           TEXT NOT NULL,
+            ist_entscheidung TINYINT(1) DEFAULT 0,
+            erstellt_von     INT NULL,
+            erstellt_am      DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (erstellt_von) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB;
+    ");
+
+    // 9. Reaktionen (pro Kommentar, pro Benutzer eine Reaktion)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `" . TBL_REAKTIONEN . "` (
+            id           INT AUTO_INCREMENT PRIMARY KEY,
+            kommentar_id INT NOT NULL,
+            typ          ENUM('👍','👎','❤️','🤔') NOT NULL,
+            benutzer_id  INT NOT NULL,
+            erstellt_am  DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_reaktion (kommentar_id, benutzer_id),
+            FOREIGN KEY (kommentar_id) REFERENCES `" . TBL_KOMMENTARE . "`(id) ON DELETE CASCADE,
+            FOREIGN KEY (benutzer_id) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB;
+    ");
+
     // ---- Spalten nachrüsten falls Tabellen bereits existieren ----
     foreach ([TBL_RUBRIKEN, TBL_EINTRAEGE, TBL_SCHRITTE] as $tbl) {
         $cols = $pdo->query("SHOW COLUMNS FROM `{$tbl}` LIKE 'erstellt_von'")->fetchAll();

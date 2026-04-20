@@ -35,6 +35,7 @@ $js_vars    = $js_vars    ?? [];
 <script src="<?= $base_path ?? '' ?>assets/js/rubriken.js"></script>
 <script src="<?= $base_path ?? '' ?>assets/js/timeline.js"></script>
 <script src="<?= $base_path ?? '' ?>assets/js/anhaenge.js"></script>
+<script src="<?= $base_path ?? '' ?>assets/js/diskussion.js"></script>
 <script src="<?= $base_path ?? '' ?>assets/js/detail.js"></script>
 <script src="<?= $base_path ?? '' ?>assets/js/modals.js"></script>
 <script src="<?= $base_path ?? '' ?>assets/js/crud.js"></script>

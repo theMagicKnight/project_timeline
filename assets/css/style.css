@@ -767,3 +767,221 @@ body {
   opacity: .8;
 }
 .anh-indicator i { font-size: .7rem; }
+
+/* ============================================================
+   DISKUSSION — Kommentare, Reaktionen, Entscheidungen
+   ============================================================ */
+.diskussion-wrap {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.diskussion-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.diskussion-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 5px;
+  margin-left: 4px;
+}
+
+.entscheidung-badge {
+  font-size: .72rem;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+/* ---- Kommentare ---- */
+.kommentar-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.kommentar-leer {
+  font-size: .82rem;
+  color: var(--text3);
+  text-align: center;
+  padding: 16px;
+}
+
+.kommentar-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: border-color .15s;
+}
+
+.kommentar-item.ist-entscheidung {
+  border-color: var(--green);
+  background: rgba(52,211,153,.06);
+}
+
+.entscheidung-banner {
+  font-size: .72rem;
+  color: var(--green);
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.kommentar-kopf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.user-avatar-sm {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(124,106,247,.2);
+  color: var(--accent);
+  font-size: .8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kommentar-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.kommentar-autor {
+  font-size: .83rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.kommentar-datum {
+  font-size: .72rem;
+  color: var(--text3);
+}
+
+.kommentar-entscheidung-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
+  font-size: .9rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all .15s;
+  margin-left: auto;
+}
+.kommentar-entscheidung-btn:hover { color: var(--green); }
+.kommentar-entscheidung-btn.aktiv { color: var(--green); }
+
+.kommentar-text {
+  font-size: .84rem;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-bottom: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---- Reaktionen ---- */
+.reaktionen-zeile {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.reaktion-btn {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: .78rem;
+  cursor: pointer;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all .15s;
+}
+.reaktion-btn:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+.reaktion-btn.aktiv {
+  background: rgba(124,106,247,.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.reaktion-count {
+  font-size: .72rem;
+  font-weight: 600;
+  min-width: 10px;
+}
+
+/* ---- Kommentar-Formular ---- */
+.kommentar-form {
+  margin-top: 12px;
+}
+
+.kommentar-input-wrap {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.kommentar-input {
+  flex-grow: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: .84rem;
+  padding: 8px 12px;
+  resize: none;
+  transition: border-color .15s;
+  min-height: 60px;
+}
+.kommentar-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,106,247,.15);
+}
+.kommentar-input::placeholder { color: var(--text3); }
+
+/* ---- Indikator in Eintragsliste ---- */
+.kommentar-indicator {
+  font-size: .72rem;
+  color: var(--cyan, #38bdf8);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  opacity: .8;
+}
+.kommentar-indicator i { font-size: .7rem; }

@@ -195,7 +195,9 @@ try {
             $e = $pdo->prepare("
                 SELECT e.*, b.name AS erstellt_von_name,
                     (SELECT COUNT(*) FROM `" . TBL_ANHAENGE . "` a
-                     WHERE a.typ='eintrag' AND a.referenz_id=e.id) AS anhang_count
+                     WHERE a.typ='eintrag' AND a.referenz_id=e.id) AS anhang_count,
+                    (SELECT COUNT(*) FROM `" . TBL_KOMMENTARE . "` k
+                     WHERE k.typ='eintrag' AND k.referenz_id=e.id) AS kommentar_count
                 FROM `" . TBL_EINTRAEGE . "` e
                 LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id = e.erstellt_von
                 WHERE e.rubrik_id=? ORDER BY e.sortierung, e.erstellt_am
@@ -332,6 +334,76 @@ try {
         if (!hatRecht(projektRecht((int)$r['projekt_id'], $pdo), 'verwalten')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
         $pdo->prepare("DELETE FROM `" . TBL_ANHAENGE . "` WHERE id=?")->execute([$aid]);
         echo json_encode(['ok' => true]);
+
+
+    // ===== KOMMENTARE =========================================
+
+    } elseif ($action === 'kommentare_laden') {
+        $typ = in_array($input['typ'] ?? '', ['eintrag','schritt']) ? $input['typ'] : 'eintrag';
+        $rid = (int)($input['referenz_id'] ?? 0);
+        $bid = $ich['id'];
+        $s = $pdo->prepare("
+            SELECT k.*,
+                   b.name AS autor_name,
+                   (SELECT COUNT(*) FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND typ='👍') AS r_gut,
+                   (SELECT COUNT(*) FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND typ='👎') AS r_nein,
+                   (SELECT COUNT(*) FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND typ='❤️') AS r_herz,
+                   (SELECT COUNT(*) FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND typ='🤔') AS r_denk,
+                   (SELECT typ FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND benutzer_id=?) AS meine_reaktion
+            FROM `" . TBL_KOMMENTARE . "` k
+            LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id = k.erstellt_von
+            WHERE k.typ=? AND k.referenz_id=?
+            ORDER BY k.erstellt_am ASC
+        ");
+        $s->execute([$bid, $typ, $rid]);
+        echo json_encode($s->fetchAll());
+
+    } elseif ($action === 'kommentar_erstellen') {
+        $typ    = in_array($input['typ'] ?? '', ['eintrag','schritt']) ? $input['typ'] : 'eintrag';
+        $rid    = (int)($input['referenz_id'] ?? 0);
+        $inhalt = trim($input['inhalt'] ?? '');
+        if (!$inhalt) { echo json_encode(['error' => 'Kein Inhalt']); exit; }
+        if ($typ === 'eintrag') {
+            $row = $pdo->prepare("SELECT r.projekt_id FROM `" . TBL_EINTRAEGE . "` e JOIN `" . TBL_RUBRIKEN . "` r ON r.id=e.rubrik_id WHERE e.id=?");
+        } else {
+            $row = $pdo->prepare("SELECT r.projekt_id FROM `" . TBL_SCHRITTE . "` ts JOIN `" . TBL_EINTRAEGE . "` e ON e.id=ts.eintrag_id JOIN `" . TBL_RUBRIKEN . "` r ON r.id=e.rubrik_id WHERE ts.id=?");
+        }
+        $row->execute([$rid]); $r = $row->fetch();
+        if (!hatRecht(projektRecht((int)$r['projekt_id'], $pdo), 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
+        $s = $pdo->prepare("INSERT INTO `" . TBL_KOMMENTARE . "` (typ, referenz_id, inhalt, erstellt_von) VALUES (?,?,?,?)");
+        $s->execute([$typ, $rid, $inhalt, $ich['id']]);
+        echo json_encode(['id' => $pdo->lastInsertId(), 'ok' => true]);
+
+    } elseif ($action === 'kommentar_entscheidung') {
+        $kid = (int)$input['id'];
+        $row = $pdo->prepare("
+            SELECT r.projekt_id FROM `" . TBL_KOMMENTARE . "` k
+            LEFT JOIN `" . TBL_EINTRAEGE . "` e  ON (k.typ='eintrag' AND e.id=k.referenz_id)
+            LEFT JOIN `" . TBL_SCHRITTE . "`  ts ON (k.typ='schritt' AND ts.id=k.referenz_id)
+            LEFT JOIN `" . TBL_EINTRAEGE . "` e2 ON (k.typ='schritt' AND e2.id=ts.eintrag_id)
+            LEFT JOIN `" . TBL_RUBRIKEN . "`  r  ON r.id=COALESCE(e.rubrik_id, e2.rubrik_id)
+            WHERE k.id=?
+        ");
+        $row->execute([$kid]); $r = $row->fetch();
+        if (!hatRecht(projektRecht((int)$r['projekt_id'], $pdo), 'verwalten')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
+        $pdo->prepare("UPDATE `" . TBL_KOMMENTARE . "` SET ist_entscheidung = 1 - ist_entscheidung WHERE id=?")->execute([$kid]);
+        echo json_encode(['ok' => true]);
+
+    } elseif ($action === 'reaktion_setzen') {
+        $kid = (int)$input['kommentar_id'];
+        $typ = in_array($input['typ'] ?? '', ['👍','👎','❤️','🤔']) ? $input['typ'] : null;
+        if (!$typ) { echo json_encode(['error' => 'Ungültige Reaktion']); exit; }
+        $existing = $pdo->prepare("SELECT typ FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=? AND benutzer_id=?");
+        $existing->execute([$kid, $ich['id']]); $alte = $existing->fetch();
+        if ($alte && $alte['typ'] === $typ) {
+            $pdo->prepare("DELETE FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=? AND benutzer_id=?")->execute([$kid, $ich['id']]);
+            echo json_encode(['ok' => true, 'aktion' => 'entfernt']);
+        } else {
+            $pdo->prepare("INSERT INTO `" . TBL_REAKTIONEN . "` (kommentar_id, typ, benutzer_id) VALUES (?,?,?) ON DUPLICATE KEY UPDATE typ=?, erstellt_am=NOW()")
+                ->execute([$kid, $typ, $ich['id'], $typ]);
+            echo json_encode(['ok' => true, 'aktion' => 'gesetzt']);
+        }
+
 
     } else {
         http_response_code(400);
