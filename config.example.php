@@ -23,6 +23,8 @@ define('TBL_SCHRITTE',         DB_PREFIX . 'timeline_schritte');
 define('TBL_BENUTZER',         DB_PREFIX . 'benutzer');
 define('TBL_PROJEKT_BENUTZER', DB_PREFIX . 'projekt_benutzer');
 define('TBL_ANHAENGE',         DB_PREFIX . 'anhaenge');
+define('TBL_KOMMENTARE',       DB_PREFIX . 'kommentare');
+define('TBL_REAKTIONEN',       DB_PREFIX . 'reaktionen');
 
 // ============================================================
 //  Erster Admin — wird beim allerersten Aufruf automatisch angelegt
