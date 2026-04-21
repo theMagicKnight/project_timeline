@@ -985,3 +985,203 @@ body {
   opacity: .8;
 }
 .kommentar-indicator i { font-size: .7rem; }
+
+/* ============================================================
+   BOARD — Diskussions-Board
+   ============================================================ */
+.board-wrap { padding: 4px 0; }
+
+.board-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.board-loading {
+  padding: 32px;
+  text-align: center;
+  color: var(--text3);
+  font-size: .9rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: spin .8s linear infinite; }
+
+/* ---- Themen-Liste ---- */
+.board-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.board-thema-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: border-color .15s, background .15s;
+}
+.board-thema-item:hover { border-color: var(--accent); background: var(--surface2); }
+.board-thema-item.hat-entscheidung { border-left: 3px solid var(--green); }
+
+.board-thema-main { flex-grow: 1; min-width: 0; }
+
+.board-thema-titel {
+  font-size: .92rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board-thema-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: .75rem;
+  color: var(--text3);
+}
+
+.board-ref-badge {
+  background: rgba(56,189,248,.12);
+  color: #38bdf8;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: .72rem;
+}
+.board-ref-badge.gross { font-size: .82rem; padding: 4px 12px; }
+
+.board-rubrik-badge {
+  background: rgba(124,106,247,.12);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: .72rem;
+}
+.board-rubrik-badge.gross { font-size: .82rem; padding: 4px 12px; }
+
+.board-thema-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.board-antworten {
+  font-size: .78rem;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.board-entscheidung-badge {
+  font-size: .7rem;
+  color: var(--green);
+  white-space: nowrap;
+}
+
+/* ---- Thema-Detail ---- */
+.board-detail-wrap { padding: 4px 0; }
+
+.board-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-zurueck {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: .82rem;
+  color: var(--text2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.btn-zurueck:hover { border-color: var(--accent); color: var(--accent); }
+
+.board-detail-titel {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  flex-grow: 1;
+}
+
+.board-verknuepfungen {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.board-rubrik-erstellen-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(52,211,153,.08);
+  border: 1px solid rgba(52,211,153,.25);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: .85rem;
+  color: var(--text2);
+  flex-wrap: wrap;
+}
+
+/* ---- Kommentar-Baum ---- */
+.board-kommentar-baum {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.board-knoten {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  position: relative;
+  transition: border-color .15s;
+}
+.board-knoten.ist-entscheidung {
+  border-color: var(--green);
+  background: rgba(52,211,153,.05);
+}
+
+.board-baum-linie {
+  position: absolute;
+  left: -1rem;
+  top: 20px;
+  width: 1rem;
+  height: 1px;
+  background: var(--border);
+}
+
+.antworten-btn {
+  margin-left: auto;
+  color: var(--accent) !important;
+  border-color: rgba(124,106,247,.3) !important;
+}
+.antworten-btn:hover {
+  background: rgba(124,106,247,.1) !important;
+}
+
+.board-antwort-form {
+  margin-top: 16px;
+}
