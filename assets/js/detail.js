@@ -37,6 +37,9 @@ async function openEintragDetail(id){
   document.getElementById('modal-footer').innerHTML=`
     <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Schließen</button>
     ${hatRecht('schreiben')?`
+      <button class="btn btn-outline-secondary btn-sm" onclick="boardThemaVonRef('eintrag',${e.id},'${esc(e.titel).replace(/'/g,"\\'")}')">
+        <i class="bi bi-chat-dots"></i> Im Board
+      </button>
       <button class="btn btn-outline-secondary btn-sm" onclick="zeigeAnhangFormImModal('eintrag',${e.id})">
         <i class="bi bi-paperclip"></i> Anhang
       </button>
