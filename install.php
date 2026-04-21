@@ -299,23 +299,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$istInstalliert) {
                 $pdo->prepare("INSERT INTO `{$p}benutzer` (name,email,passwort,rolle) VALUES (?,?,?,?)")
                     ->execute([$name, $email, password_hash($pass, PASSWORD_DEFAULT), 'admin']);
 
-                // config.php schreiben
+                // config.php schreiben — nur DB-Zugangsdaten + require tbl.php
                 $prefix = $db['prefix'];
                 $config = "<?php\n"
                     . "// Projekt-Timeline — Konfiguration\n"
-                    . "// Erstellt: " . date('Y-m-d H:i:s') . "\n\n"
-                    . "define('DB_HOST',   '" . addslashes($db['host']) . "');\n"
-                    . "define('DB_USER',   '" . addslashes($db['user']) . "');\n"
-                    . "define('DB_PASS',   '" . addslashes($db['pass']) . "');\n"
-                    . "define('DB_NAME',   '" . addslashes($db['name']) . "');\n\n"
+                    . "// Erstellt: " . date('Y-m-d H:i:s') . "\n"
+                    . "// Diese Datei wird bei Updates NICHT überschrieben.\n\n"
+                    . "define('DB_HOST', '" . addslashes($db['host']) . "');\n"
+                    . "define('DB_USER', '" . addslashes($db['user']) . "');\n"
+                    . "define('DB_PASS', '" . addslashes($db['pass']) . "');\n"
+                    . "define('DB_NAME', '" . addslashes($db['name']) . "');\n\n"
                     . "define('DB_PREFIX', '" . addslashes($prefix) . "');\n\n"
-                    . "define('TBL_PROJEKTE',         DB_PREFIX . 'projekte');\n"
-                    . "define('TBL_RUBRIKEN',         DB_PREFIX . 'rubriken');\n"
-                    . "define('TBL_EINTRAEGE',        DB_PREFIX . 'eintraege');\n"
-                    . "define('TBL_SCHRITTE',         DB_PREFIX . 'timeline_schritte');\n"
-                    . "define('TBL_BENUTZER',         DB_PREFIX . 'benutzer');\n"
-                    . "define('TBL_PROJEKT_BENUTZER', DB_PREFIX . 'projekt_benutzer');\n"
-                    . "define('TBL_ANHAENGE',         DB_PREFIX . 'anhaenge');\n\n"
+                    . "// Tabellennamen aus tbl.php laden (wird bei Updates aktualisiert)\n"
+                    . "require_once __DIR__ . '/tbl.php';\n\n"
                     . "// Admin-Erstanlage — nach Installation leer lassen\n"
                     . "define('ADMIN_EMAIL', '');\n"
                     . "define('ADMIN_PASS',  '');\n";
