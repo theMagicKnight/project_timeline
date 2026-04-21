@@ -1,35 +1,26 @@
 <?php
 // ============================================================
-//  Datenbank-Konfiguration — hier anpassen
+//  config.example.php — Vorlage für config.php
+//
+//  Diese Datei kopieren → config.php und Werte eintragen.
+//  config.php wird bei Updates NICHT überschrieben.
+//  Tabellennamen stehen in tbl.php (wird bei Updates aktualisiert).
 // ============================================================
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'projekt_timeline');
 
-// ============================================================
-//  Tabellen-Präfix — bei Strato teilen sich oft mehrere Apps
-//  eine Datenbank. Präfix verhindert Namenskonflikte.
-//  Beispiel: 'tl_' → Tabellen heißen tl_projekte, tl_rubriken …
-//  Leer lassen ('') wenn du eine eigene Datenbank hast.
-// ============================================================
+define('DB_HOST', 'localhost');
+define('DB_USER', 'dein_db_benutzer');
+define('DB_PASS', 'dein_db_passwort');
+define('DB_NAME', 'deine_datenbank');
+
+// Tabellen-Präfix (bei Strato mit geteilter DB empfohlen)
 define('DB_PREFIX', 'tl_');
 
-// Fertige Tabellennamen — diese überall im Code verwenden
-define('TBL_PROJEKTE',         DB_PREFIX . 'projekte');
-define('TBL_RUBRIKEN',         DB_PREFIX . 'rubriken');
-define('TBL_EINTRAEGE',        DB_PREFIX . 'eintraege');
-define('TBL_SCHRITTE',         DB_PREFIX . 'timeline_schritte');
-define('TBL_BENUTZER',         DB_PREFIX . 'benutzer');
-define('TBL_PROJEKT_BENUTZER', DB_PREFIX . 'projekt_benutzer');
-define('TBL_ANHAENGE',         DB_PREFIX . 'anhaenge');
-define('TBL_KOMMENTARE',       DB_PREFIX . 'kommentare');
-define('TBL_REAKTIONEN',       DB_PREFIX . 'reaktionen');
-define('TBL_BOARD_THEMEN',     DB_PREFIX . 'board_themen');
+// Tabellennamen aus tbl.php laden (wird bei Updates aktualisiert)
+require_once __DIR__ . '/tbl.php';
 
 // ============================================================
-//  Erster Admin — wird beim allerersten Aufruf automatisch angelegt
-//  Danach diese Werte leer lassen oder aus der Datei entfernen
+//  Erster Admin — nur beim allerersten Aufruf aktiv
+//  Danach diese beiden Zeilen leer lassen oder entfernen!
 // ============================================================
 define('ADMIN_EMAIL', 'admin@example.com');
-define('ADMIN_PASS',  'admin123');
+define('ADMIN_PASS',  'sicheres_passwort_hier_eintragen');
