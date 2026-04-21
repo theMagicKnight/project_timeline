@@ -118,17 +118,19 @@ try {
         ) ENGINE=InnoDB;
     ");
 
-    // 8. Kommentare (Diskussion an Einträge oder Schritte)
+    // 8. Kommentare (Diskussion an Einträge, Schritte oder Board-Themen)
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS `" . TBL_KOMMENTARE . "` (
             id               INT AUTO_INCREMENT PRIMARY KEY,
-            typ              ENUM('eintrag','schritt') NOT NULL,
+            typ              ENUM('eintrag','schritt','board') NOT NULL,
             referenz_id      INT NOT NULL,
+            eltern_id        INT NULL,
             inhalt           TEXT NOT NULL,
             ist_entscheidung TINYINT(1) DEFAULT 0,
             erstellt_von     INT NULL,
             erstellt_am      DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (erstellt_von) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE SET NULL
+            FOREIGN KEY (erstellt_von) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE SET NULL,
+            FOREIGN KEY (eltern_id)   REFERENCES `" . TBL_KOMMENTARE . "`(id) ON DELETE CASCADE
         ) ENGINE=InnoDB;
     ");
 
@@ -145,6 +147,44 @@ try {
             FOREIGN KEY (benutzer_id) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE CASCADE
         ) ENGINE=InnoDB;
     ");
+
+    // 10. Board-Themen (projektweite Diskussionen)
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `" . TBL_BOARD_THEMEN . "` (
+            id           INT AUTO_INCREMENT PRIMARY KEY,
+            projekt_id   INT NOT NULL,
+            titel        VARCHAR(300) NOT NULL,
+            ref_typ      ENUM('eintrag','schritt') NULL,
+            ref_id       INT NULL,
+            rubrik_id    INT NULL,
+            erstellt_von INT NULL,
+            erstellt_am  DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (projekt_id)   REFERENCES `" . TBL_PROJEKTE . "`(id) ON DELETE CASCADE,
+            FOREIGN KEY (rubrik_id)    REFERENCES `" . TBL_RUBRIKEN . "`(id) ON DELETE SET NULL,
+            FOREIGN KEY (erstellt_von) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE SET NULL
+        ) ENGINE=InnoDB;
+    ");
+
+    // ---- Spalten nachrüsten falls Tabellen bereits existieren ----
+    foreach ([TBL_RUBRIKEN, TBL_EINTRAEGE, TBL_SCHRITTE] as $tbl) {
+        $cols = $pdo->query("SHOW COLUMNS FROM `{$tbl}` LIKE 'erstellt_von'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE `{$tbl}`
+                ADD COLUMN `erstellt_von` INT NULL,
+                ADD FOREIGN KEY (erstellt_von) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE SET NULL
+            ");
+        }
+    }
+    // eltern_id nachrüsten falls kommentare schon existiert
+    $cols = $pdo->query("SHOW COLUMNS FROM `" . TBL_KOMMENTARE . "` LIKE 'eltern_id'")->fetchAll();
+    if (empty($cols)) {
+        $pdo->exec("ALTER TABLE `" . TBL_KOMMENTARE . "` ADD COLUMN `eltern_id` INT NULL, ADD FOREIGN KEY (eltern_id) REFERENCES `" . TBL_KOMMENTARE . "`(id) ON DELETE CASCADE");
+    }
+    // typ enum nachrüsten (board hinzufügen)
+    $col = $pdo->query("SHOW COLUMNS FROM `" . TBL_KOMMENTARE . "` LIKE 'typ'")->fetch();
+    if ($col && strpos($col['Type'], 'board') === false) {
+        $pdo->exec("ALTER TABLE `" . TBL_KOMMENTARE . "` MODIFY COLUMN `typ` ENUM('eintrag','schritt','board') NOT NULL");
+    }
 
     // ---- Spalten nachrüsten falls Tabellen bereits existieren ----
     foreach ([TBL_RUBRIKEN, TBL_EINTRAEGE, TBL_SCHRITTE] as $tbl) {
