@@ -53,12 +53,17 @@ function renderMain(rubriken) {
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link ${aktiverTab==='rubriken'?'active':''}" onclick="switchTab('rubriken',this)">
+        <button class="nav-link ${aktiverTab==='rubriken'?'active':''}" data-tab="rubriken" onclick="switchTab('rubriken',this)">
           <i class="bi bi-folder me-1"></i><span class="d-none d-sm-inline">Rubriken</span>
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link ${aktiverTab==='timeline'?'active':''}" onclick="switchTab('timeline',this)">
+        <button class="nav-link ${aktiverTab==='board'?'active':''}" data-tab="board" onclick="switchTab('board',this)">
+          <i class="bi bi-chat-dots me-1"></i><span class="d-none d-sm-inline">Board</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link ${aktiverTab==='timeline'?'active':''}" data-tab="timeline" onclick="switchTab('timeline',this)">
           <i class="bi bi-clock-history me-1"></i><span class="d-none d-sm-inline">Timeline</span>
         </button>
       </li>
@@ -78,5 +83,6 @@ function switchTab(tab, el) {
 function showTab(tab, rubriken) {
   if      (tab==='matrix')   renderMatrix(rubriken);
   else if (tab==='rubriken') renderRubriken(rubriken);
+  else if (tab==='board')    renderBoard();
   else                       renderTimeline(rubriken);
 }
