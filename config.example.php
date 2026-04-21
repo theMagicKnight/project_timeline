@@ -25,6 +25,7 @@ define('TBL_PROJEKT_BENUTZER', DB_PREFIX . 'projekt_benutzer');
 define('TBL_ANHAENGE',         DB_PREFIX . 'anhaenge');
 define('TBL_KOMMENTARE',       DB_PREFIX . 'kommentare');
 define('TBL_REAKTIONEN',       DB_PREFIX . 'reaktionen');
+define('TBL_BOARD_THEMEN',     DB_PREFIX . 'board_themen');
 
 // ============================================================
 //  Erster Admin — wird beim allerersten Aufruf automatisch angelegt
