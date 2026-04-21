@@ -405,6 +405,121 @@ try {
         }
 
 
+
+    // ===== BOARD-THEMEN ======================================
+
+    } elseif ($action === 'board_themen_liste') {
+        $pid = (int)($_GET['id'] ?? 0);
+        if (!projektRecht($pid, $pdo)) { http_response_code(403); echo json_encode(['error'=>'Kein Zugang']); exit; }
+        $s = $pdo->prepare("
+            SELECT t.*,
+                   b.name AS erstellt_von_name,
+                   (SELECT COUNT(*) FROM `" . TBL_KOMMENTARE . "` k WHERE k.typ='board' AND k.referenz_id=t.id) AS antwort_count,
+                   (SELECT COUNT(*) FROM `" . TBL_KOMMENTARE . "` k WHERE k.typ='board' AND k.referenz_id=t.id AND k.ist_entscheidung=1) AS entscheidung_count,
+                   r.name AS rubrik_name,
+                   CASE t.ref_typ
+                     WHEN 'eintrag' THEN (SELECT titel FROM `" . TBL_EINTRAEGE . "` WHERE id=t.ref_id)
+                     WHEN 'schritt' THEN (SELECT titel FROM `" . TBL_SCHRITTE . "` WHERE id=t.ref_id)
+                     ELSE NULL
+                   END AS ref_titel
+            FROM `" . TBL_BOARD_THEMEN . "` t
+            LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id = t.erstellt_von
+            LEFT JOIN `" . TBL_RUBRIKEN . "` r ON r.id = t.rubrik_id
+            WHERE t.projekt_id=?
+            ORDER BY t.erstellt_am DESC
+        ");
+        $s->execute([$pid]);
+        echo json_encode($s->fetchAll());
+
+    } elseif ($action === 'board_thema_erstellen') {
+        $pid   = (int)($input['projekt_id'] ?? 0);
+        $titel = trim($input['titel'] ?? '');
+        if (!$titel) { echo json_encode(['error' => 'Kein Titel']); exit; }
+        if (!hatRecht(projektRecht($pid, $pdo), 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
+        $refTyp = in_array($input['ref_typ'] ?? '', ['eintrag','schritt']) ? $input['ref_typ'] : null;
+        $refId  = $refTyp ? (int)($input['ref_id'] ?? 0) : null;
+        $s = $pdo->prepare("INSERT INTO `" . TBL_BOARD_THEMEN . "` (projekt_id, titel, ref_typ, ref_id, erstellt_von) VALUES (?,?,?,?,?)");
+        $s->execute([$pid, $titel, $refTyp, $refId, $ich['id']]);
+        echo json_encode(['id' => $pdo->lastInsertId(), 'ok' => true]);
+
+    } elseif ($action === 'board_thema_detail') {
+        $tid = (int)($_GET['id'] ?? 0);
+        $t   = $pdo->prepare("SELECT t.*, b.name AS erstellt_von_name,
+            r.name AS rubrik_name,
+            CASE t.ref_typ
+              WHEN 'eintrag' THEN (SELECT titel FROM `" . TBL_EINTRAEGE . "` WHERE id=t.ref_id)
+              WHEN 'schritt' THEN (SELECT titel FROM `" . TBL_SCHRITTE . "` WHERE id=t.ref_id)
+              ELSE NULL
+            END AS ref_titel
+            FROM `" . TBL_BOARD_THEMEN . "` t
+            LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id=t.erstellt_von
+            LEFT JOIN `" . TBL_RUBRIKEN . "` r ON r.id=t.rubrik_id
+            WHERE t.id=?");
+        $t->execute([$tid]); $thema = $t->fetch();
+        if (!$thema) { http_response_code(404); echo json_encode(['error'=>'Nicht gefunden']); exit; }
+        if (!projektRecht((int)$thema['projekt_id'], $pdo)) { http_response_code(403); echo json_encode(['error'=>'Kein Zugang']); exit; }
+
+        // Alle Kommentare mit Reaktionen laden
+        $bid = $ich['id'];
+        $k = $pdo->prepare("
+            SELECT k.*, b.name AS autor_name,
+                   (SELECT COUNT(*) FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND typ='👍') AS r_gut,
+                   (SELECT COUNT(*) FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND typ='👎') AS r_nein,
+                   (SELECT COUNT(*) FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND typ='❤️') AS r_herz,
+                   (SELECT COUNT(*) FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND typ='🤔') AS r_denk,
+                   (SELECT typ FROM `" . TBL_REAKTIONEN . "` WHERE kommentar_id=k.id AND benutzer_id=?) AS meine_reaktion
+            FROM `" . TBL_KOMMENTARE . "` k
+            LEFT JOIN `" . TBL_BENUTZER . "` b ON b.id=k.erstellt_von
+            WHERE k.typ='board' AND k.referenz_id=?
+            ORDER BY k.erstellt_am ASC
+        ");
+        $k->execute([$bid, $tid]);
+        $kommentare = $k->fetchAll();
+        echo json_encode(['thema' => $thema, 'kommentare' => $kommentare]);
+
+    } elseif ($action === 'board_kommentar_erstellen') {
+        $tid    = (int)($input['thema_id'] ?? 0);
+        $inhalt = trim($input['inhalt'] ?? '');
+        $eltId  = isset($input['eltern_id']) ? (int)$input['eltern_id'] : null;
+        if (!$inhalt) { echo json_encode(['error' => 'Kein Inhalt']); exit; }
+        $thema  = $pdo->prepare("SELECT projekt_id FROM `" . TBL_BOARD_THEMEN . "` WHERE id=?"); $thema->execute([$tid]); $t = $thema->fetch();
+        if (!hatRecht(projektRecht((int)$t['projekt_id'], $pdo), 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
+        $s = $pdo->prepare("INSERT INTO `" . TBL_KOMMENTARE . "` (typ, referenz_id, eltern_id, inhalt, erstellt_von) VALUES ('board',?,?,?,?)");
+        $s->execute([$tid, $eltId, $inhalt, $ich['id']]);
+        echo json_encode(['id' => $pdo->lastInsertId(), 'ok' => true]);
+
+    } elseif ($action === 'board_rubrik_erstellen') {
+        // Aus Entscheidung eine Rubrik erstellen und ans Thema koppeln
+        $tid   = (int)($input['thema_id'] ?? 0);
+        $name  = trim($input['name'] ?? '');
+        $thema = $pdo->prepare("SELECT * FROM `" . TBL_BOARD_THEMEN . "` WHERE id=?"); $thema->execute([$tid]); $t = $thema->fetch();
+        if (!$t) { echo json_encode(['error' => 'Thema nicht gefunden']); exit; }
+        if (!hatRecht(projektRecht((int)$t['projekt_id'], $pdo), 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
+        // Rubrik anlegen
+        $r = $pdo->prepare("INSERT INTO `" . TBL_RUBRIKEN . "` (projekt_id, name, erstellt_von) VALUES (?,?,?)");
+        $r->execute([$t['projekt_id'], $name ?: $t['titel'], $ich['id']]);
+        $rid = $pdo->lastInsertId();
+        // Thema mit Rubrik koppeln
+        $pdo->prepare("UPDATE `" . TBL_BOARD_THEMEN . "` SET rubrik_id=? WHERE id=?")->execute([$rid, $tid]);
+        echo json_encode(['id' => $rid, 'ok' => true]);
+
+    } elseif ($action === 'board_thema_von_ref') {
+        // Schritt/Eintrag → Board-Thema erstellen
+        $refTyp = in_array($input['ref_typ'] ?? '', ['eintrag','schritt']) ? $input['ref_typ'] : null;
+        $refId  = (int)($input['ref_id'] ?? 0);
+        $pid    = (int)($input['projekt_id'] ?? 0);
+        $titel  = trim($input['titel'] ?? '');
+        if (!$refTyp || !$refId || !$titel) { echo json_encode(['error' => 'Fehlende Parameter']); exit; }
+        if (!hatRecht(projektRecht($pid, $pdo), 'schreiben')) { http_response_code(403); echo json_encode(['error'=>'Keine Rechte']); exit; }
+        // Prüfen ob schon ein Thema verknüpft
+        $ex = $pdo->prepare("SELECT id FROM `" . TBL_BOARD_THEMEN . "` WHERE ref_typ=? AND ref_id=? AND projekt_id=?");
+        $ex->execute([$refTyp, $refId, $pid]); $existing = $ex->fetch();
+        if ($existing) { echo json_encode(['id' => $existing['id'], 'ok' => true, 'existed' => true]); exit; }
+        $s = $pdo->prepare("INSERT INTO `" . TBL_BOARD_THEMEN . "` (projekt_id, titel, ref_typ, ref_id, erstellt_von) VALUES (?,?,?,?,?)");
+        $s->execute([$pid, $titel, $refTyp, $refId, $ich['id']]);
+        echo json_encode(['id' => $pdo->lastInsertId(), 'ok' => true, 'existed' => false]);
+
+
     } else {
         http_response_code(400);
         echo json_encode(['error' => 'Unbekannte Aktion: '.$action]);
