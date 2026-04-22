@@ -8,10 +8,10 @@ session_start();
 define('GITHUB_USER',    'theMagicKnight');
 define('GITHUB_REPO',    'project_timeline');
 define('GITHUB_API',     'https://api.github.com/repos/' . GITHUB_USER . '/' . GITHUB_REPO . '/releases/latest');
-define('INSTALL_LOCK',   __DIR__ . '/backups/.installed');
-define('CONFIG_FILE',    __DIR__ . '/config.php');
-define('BACKUP_DIR',     __DIR__ . '/backups');
-define('VERSION_FILE',   __DIR__ . '/version.json');
+define('INSTALL_LOCK',   __DIR__ . '/../backups/.installed');
+define('CONFIG_FILE',    __DIR__ . '/../config.php');
+define('BACKUP_DIR',     __DIR__ . '/../backups');
+define('VERSION_FILE',   __DIR__ . '/../version.json');
 
 // ---- Aktuelle lokale Version ----
 function lokaleVersion(): string {
@@ -204,7 +204,7 @@ if (isset($_GET['ajax'])) {
             $rel  = str_replace($src . DIRECTORY_SEPARATOR, '', $item->getPathname());
             $teile = explode(DIRECTORY_SEPARATOR, $rel);
             if (in_array($teile[0], $skip)) continue;
-            $ziel = __DIR__ . DIRECTORY_SEPARATOR . $rel;
+            $ziel = __DIR__ . '/..' . DIRECTORY_SEPARATOR . $rel;
             if ($item->isDir()) {
                 if (!is_dir($ziel)) mkdir($ziel, 0755, true);
             } else {
@@ -676,11 +676,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$istInstalliert) {
     <i class="bi bi-shield-check-fill"></i>
     <div>
       <strong>Sicherheitshinweis:</strong><br>
-      <small>Beschränke den Zugriff auf <code>install.php</code> oder lösche sie nach der Installation.</small>
+      <small>Beschränke den Zugriff auf <code>install/</code> oder lösche sie nach der Installation.</small>
     </div>
   </div>
 
-  <a href="index.php" class="btn-accent" style="text-decoration:none;display:inline-flex">
+  <a href="../index.php" class="btn-accent" style="text-decoration:none;display:inline-flex">
     <i class="bi bi-rocket-takeoff"></i> Jetzt starten
   </a>
 </div>
@@ -794,7 +794,7 @@ async function testVerbindung() {
   const result = document.getElementById('test-result');
   result.style.display = 'none';
 
-  const r    = await fetch('install.php?ajax=db_test', {method:'POST', body: new URLSearchParams({
+  const r    = await fetch('?ajax=db_test', {method:'POST', body: new URLSearchParams({
     host: fd.get('db_host'),
     name: fd.get('db_name'),
     user: fd.get('db_user'),
@@ -815,7 +815,7 @@ async function githubPruefen() {
   btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Prüfe GitHub…';
   btn.disabled  = true;
 
-  const r    = await fetch('install.php?ajax=github_check');
+  const r    = await fetch('?ajax=github_check');
   const data = await r.json();
 
   document.getElementById('update-result').style.display = 'block';
@@ -865,13 +865,13 @@ async function updateStarten() {
 
   // Schritt 1: Backup
   fortschritt(bar, 20, label, 'Erstelle Backup…');
-  const bk = await fetch('install.php?ajax=backup', {method:'POST'});
+  const bk = await fetch('?ajax=backup', {method:'POST'});
   const bkData = await bk.json();
   if (!bkData.ok) { fehlerZeigen(label, bkData.msg); return; }
 
   // Schritt 2: Update laden
   fortschritt(bar, 50, label, 'Lade Update von GitHub…');
-  const up = await fetch('install.php?ajax=update', {method:'POST',
+  const up = await fetch('?ajax=update', {method:'POST',
     body: new URLSearchParams({zip_url: zipUrl})});
   const upData = await up.json();
   if (!upData.ok) { fehlerZeigen(label, upData.msg); return; }
@@ -887,7 +887,7 @@ async function updateStarten() {
         <div><strong>Update erfolgreich!</strong><br>
         <small>${bkData.msg} · ${upData.msg}</small></div>
       </div>
-      <a href="index.php" style="text-decoration:none" class="btn-accent d-inline-flex mt-3">
+      <a href="../index.php" style="text-decoration:none" class="btn-accent d-inline-flex mt-3">
         <i class="bi bi-rocket-takeoff"></i> App neu starten
       </a>`;
   }, 800);
