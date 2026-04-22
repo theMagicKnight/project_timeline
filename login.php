@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/src/db.php';
+require_once __DIR__ . '/src/auth.php';
 
 // Ersten Admin anlegen falls noch keiner existiert
 if ($pdo) ersterAdminAnlegen($pdo);

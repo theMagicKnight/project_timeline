@@ -1,26 +1,26 @@
 <?php
 // ============================================================
-//  Datenbank-Konfiguration — hier anpassen
+//  config.example.php — Vorlage für config.php
+//
+//  Diese Datei ins HAUPTVERZEICHNIS kopieren → config.php
+//  und Werte eintragen. config.php wird bei Updates NICHT
+//  überschrieben. Tabellennamen stehen in src/tbl.php.
 // ============================================================
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'projekt_timeline');
 
-// ============================================================
-//  Tabellen-Präfix — bei Strato teilen sich oft mehrere Apps
-//  eine Datenbank. Präfix verhindert Namenskonflikte.
-//  Beispiel: 'tl_' → Tabellen heißen tl_projekte, tl_rubriken …
-//  Leer lassen ('') wenn du eine eigene Datenbank hast.
-// ============================================================
+define('DB_HOST', 'localhost');
+define('DB_USER', 'dein_db_benutzer');
+define('DB_PASS', 'dein_db_passwort');
+define('DB_NAME', 'deine_datenbank');
+
+// Tabellen-Präfix (bei Strato mit geteilter DB empfohlen)
 define('DB_PREFIX', 'tl_');
 
-// Fertige Tabellennamen — diese überall im Code verwenden
+// Tabellennamen aus src/tbl.php laden
 require_once __DIR__ . '/src/tbl.php';
 
 // ============================================================
-//  Erster Admin — wird beim allerersten Aufruf automatisch angelegt
-//  Danach diese Werte leer lassen oder aus der Datei entfernen
+//  Erster Admin — nur beim allerersten Aufruf aktiv
+//  Danach leer lassen oder entfernen!
 // ============================================================
 define('ADMIN_EMAIL', 'admin@example.com');
-define('ADMIN_PASS',  'admin123');
+define('ADMIN_PASS',  'sicheres_passwort');

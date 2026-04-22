@@ -44,4 +44,3 @@ $js_vars    = $js_vars    ?? [];
 <?php endif; ?>
 
 </body>
-</html>

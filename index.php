@@ -3,18 +3,24 @@
 //  Installations-Check
 // ============================================================
 if (!file_exists(__DIR__ . '/config.php')) {
-    header('Location: install.php?reason=no_config');
+    header('Location: install/index.php?reason=no_config');
     exit;
 }
 
-require_once __DIR__ . '/db.php';
+// tbl.php sicherheitshalber prüfen — falls Update tbl.php neu brachte
+if (!file_exists(__DIR__ . '/src/tbl.php')) {
+    header('Location: install/index.php?reason=no_tbl');
+    exit;
+}
+
+require_once __DIR__ . '/src/db.php';
 
 if ($db_error) {
-    header('Location: install.php?reason=db_error');
+    header('Location: install/index.php?reason=db_error');
     exit;
 }
 
-require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/src/auth.php';
 zugangErfordern('login.php');
 
 $ich   = aktuellerBenutzer();
