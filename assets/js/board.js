@@ -166,8 +166,6 @@ function baueBaum(kommentare) {
 // ============================================================
 function renderBaumKnoten(knoten, themaId, tiefe) {
   if (!knoten.length) return '';
-  const maxEinrueck = 6; // Max-Einrückung in rem
-  const einrueck = Math.min(tiefe * 1.5, maxEinrueck);
 
   return knoten.map(k => {
     const datum = new Date(k.erstellt_am).toLocaleDateString('de-DE', {
@@ -177,62 +175,87 @@ function renderBaumKnoten(knoten, themaId, tiefe) {
     const initial = autorVorname[0].toUpperCase();
     const istEntscheidung = k.ist_entscheidung == 1;
 
+    // Reddit-Style: Inhalt + Kinder nebeneinander mit Linie links
     return `
-      <div class="board-knoten ${istEntscheidung ? 'ist-entscheidung' : ''}"
-           style="margin-left:${einrueck}rem"
-           id="bknoten-${k.id}">
-        ${tiefe > 0 ? `<div class="board-baum-linie"></div>` : ''}
-        ${istEntscheidung ? `<div class="entscheidung-banner"><i class="bi bi-check-circle-fill me-1"></i>Als Entscheidung markiert</div>` : ''}
-        <div class="kommentar-kopf">
-          <div class="user-avatar-sm">${initial}</div>
-          <div class="kommentar-meta">
-            <span class="kommentar-autor">${esc(autorVorname)}</span>
-            <span class="kommentar-datum">${datum}</span>
-          </div>
-          ${hatRecht('verwalten') ? `
-          <button class="kommentar-entscheidung-btn ${istEntscheidung ? 'aktiv' : ''}"
-            onclick="boardToggleEntscheidung(${k.id},${themaId})"
-            title="${istEntscheidung ? 'Entscheidung aufheben' : 'Als Entscheidung markieren'}">
-            <i class="bi bi-check-circle${istEntscheidung ? '-fill' : ''}"></i>
-          </button>` : ''}
-        </div>
-        <div class="kommentar-text">${esc(k.inhalt).replace(/\n/g,'<br>')}</div>
-        <div class="reaktionen-zeile">
-          ${REAKTION_TYPEN.map(r => `
-            <button class="reaktion-btn ${k.meine_reaktion === r ? 'aktiv' : ''}"
-              onclick="boardReaktion(${k.id},'${r}',${themaId})">${r}
-              <span class="reaktion-count">${k['r_' + reaktionKey(r)] || 0}</span>
-            </button>`).join('')}
-          ${hatRecht('schreiben') ? `
-          <button class="reaktion-btn antworten-btn" onclick="boardAntwortFormToggle(${k.id},${themaId})">
-            <i class="bi bi-reply me-1"></i> Antworten
-          </button>` : ''}
+      <div class="rd-knoten ${istEntscheidung ? 'rd-entscheidung' : ''}" id="bknoten-${k.id}">
+
+        <!-- Avatar + Linie links -->
+        <div class="rd-links">
+          <div class="rd-avatar">${initial}</div>
+          ${k.kinder.length ? `<div class="rd-linie" onclick="rdEinklappen(${k.id})"></div>` : '<div class="rd-linie-leer"></div>'}
         </div>
 
-        <!-- Antwort-Formular (versteckt) -->
-        ${hatRecht('schreiben') ? `
-        <div class="board-antwort-form" id="board-form-${k.id}" style="display:none;margin-top:10px">
-          <div class="kommentar-input-wrap">
-            <div class="user-avatar-sm">${(AKTUELLER_BENUTZER.name||'?')[0].toUpperCase()}</div>
-            <textarea class="kommentar-input"
-              id="board-input-${k.id}"
+        <!-- Rechte Seite: Meta + Text + Aktionen + Kinder -->
+        <div class="rd-rechts">
+
+          <!-- Meta-Zeile -->
+          <div class="rd-meta">
+            <span class="rd-autor">${esc(autorVorname)}</span>
+            <span class="rd-datum">${datum}</span>
+            ${istEntscheidung ? `<span class="rd-entscheidung-badge"><i class="bi bi-check-circle-fill me-1"></i>Entscheidung</span>` : ''}
+            ${hatRecht('verwalten') ? `
+            <button class="rd-entscheidung-btn ${istEntscheidung ? 'aktiv' : ''}"
+              onclick="boardToggleEntscheidung(${k.id},${themaId})"
+              title="${istEntscheidung ? 'Entscheidung aufheben' : 'Als Entscheidung markieren'}">
+              <i class="bi bi-check-circle${istEntscheidung ? '-fill' : ''}"></i>
+            </button>` : ''}
+          </div>
+
+          <!-- Text -->
+          <div class="rd-text">${esc(k.inhalt).replace(/\n/g,'<br>')}</div>
+
+          <!-- Aktionen -->
+          <div class="rd-aktionen">
+            ${REAKTION_TYPEN.map(r => `
+              <button class="rd-reaktion ${k.meine_reaktion === r ? 'aktiv' : ''}"
+                onclick="boardReaktion(${k.id},'${r}',${themaId})">
+                ${r} <span>${k['r_' + reaktionKey(r)] || 0}</span>
+              </button>`).join('')}
+            ${hatRecht('schreiben') ? `
+            <button class="rd-antworten" onclick="rdAntwortToggle(${k.id},${themaId})">
+              <i class="bi bi-reply me-1"></i>Antworten
+            </button>` : ''}
+          </div>
+
+          <!-- Antwort-Formular -->
+          ${hatRecht('schreiben') ? `
+          <div class="rd-form" id="rd-form-${k.id}" style="display:none">
+            <textarea class="rd-textarea"
+              id="rd-input-${k.id}"
               placeholder="Antwort auf ${esc(autorVorname)}…"
               rows="2"
               onkeydown="boardKommentarKeyDown(event,${themaId},${k.id})"
             ></textarea>
-          </div>
-          <div class="d-flex gap-2 justify-content-end mt-1">
-            <button class="btn btn-outline-secondary btn-sm" onclick="boardAntwortFormToggle(${k.id},${themaId})">Abbrechen</button>
-            <button class="btn btn-accent btn-sm" onclick="boardKommentarSenden(${themaId},${k.id})">
-              <i class="bi bi-reply me-1"></i> Antworten
-            </button>
-          </div>
-        </div>` : ''}
+            <div class="rd-form-actions">
+              <button class="rd-btn-cancel" onclick="rdAntwortToggle(${k.id},${themaId})">Abbrechen</button>
+              <button class="rd-btn-send" onclick="boardKommentarSenden(${themaId},${k.id})">
+                <i class="bi bi-reply me-1"></i>Antworten
+              </button>
+            </div>
+          </div>` : ''}
 
-        <!-- Kinder rekursiv -->
-        ${k.kinder.length ? renderBaumKnoten(k.kinder, themaId, tiefe + 1) : ''}
+          <!-- Kinder rekursiv -->
+          <div class="rd-kinder" id="rd-kinder-${k.id}">
+            ${k.kinder.length ? renderBaumKnoten(k.kinder, themaId, tiefe + 1) : ''}
+          </div>
+        </div>
       </div>`;
   }).join('');
+}
+
+function rdAntwortToggle(kommentarId, themaId) {
+  const form = document.getElementById(`rd-form-${kommentarId}`);
+  if (!form) return;
+  const vis = form.style.display !== 'none';
+  form.style.display = vis ? 'none' : 'block';
+  if (!vis) document.getElementById(`rd-input-${kommentarId}`)?.focus();
+}
+
+function rdEinklappen(kommentarId) {
+  const kinder = document.getElementById(`rd-kinder-${kommentarId}`);
+  if (!kinder) return;
+  const vis = kinder.style.display !== 'none';
+  kinder.style.display = vis ? 'none' : 'block';
 }
 
 // ============================================================
