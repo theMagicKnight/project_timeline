@@ -189,36 +189,69 @@ if (isset($_GET['ajax'])) {
         $zip->close();
         unlink($tmpZip);
 
-        // Ersten Unterordner finden (GitHub packt in Unterordner)
+        // Ersten Unterordner finden (GitHub packt alles in einen Unterordner)
         $dirs = glob($tmpDir . '/*', GLOB_ONLYDIR);
         $src  = $dirs[0] ?? $tmpDir;
 
         // Dateien kopieren (config.php und backups/ überspringen)
-        $skip = ['config.php', 'backups'];
+        $skip   = ['config.php', 'backups'];
+        $basis  = __DIR__ . '/..';
+        $count  = 0;
+        $errors = [];
+
         $iter = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($src, RecursiveDirectoryIterator::SKIP_DOTS),
             RecursiveIteratorIterator::SELF_FIRST
         );
-        $count = 0;
+
         foreach ($iter as $item) {
-            $rel  = str_replace($src . DIRECTORY_SEPARATOR, '', $item->getPathname());
+            $rel   = str_replace($src . DIRECTORY_SEPARATOR, '', $item->getPathname());
             $teile = explode(DIRECTORY_SEPARATOR, $rel);
+            // Überspringe gesperrte Pfade
             if (in_array($teile[0], $skip)) continue;
-            $ziel = __DIR__ . '/..' . DIRECTORY_SEPARATOR . $rel;
+
+            $ziel = $basis . DIRECTORY_SEPARATOR . $rel;
+
             if ($item->isDir()) {
-                if (!is_dir($ziel)) mkdir($ziel, 0755, true);
+                // Ordner anlegen falls nicht vorhanden
+                if (!is_dir($ziel)) {
+                    if (!mkdir($ziel, 0755, true)) {
+                        $errors[] = "Ordner konnte nicht angelegt werden: $rel";
+                    }
+                }
             } else {
-                copy($item->getPathname(), $ziel);
-                $count++;
+                // Zielordner sicherstellen
+                $zielOrdner = dirname($ziel);
+                if (!is_dir($zielOrdner)) {
+                    mkdir($zielOrdner, 0755, true);
+                }
+                // Datei kopieren
+                if (copy($item->getPathname(), $ziel)) {
+                    $count++;
+                } else {
+                    $errors[] = "Konnte nicht kopiert werden: $rel";
+                }
             }
         }
 
-        // Temp aufräumen
-        array_map('unlink', glob($tmpDir . '/*/*'));
-        array_map('rmdir',  glob($tmpDir . '/*'));
-        @rmdir($tmpDir);
+        // Temp-Verzeichnis rekursiv aufräumen
+        function rmdir_recursive($dir) {
+            if (!is_dir($dir)) return;
+            $items = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($items as $item) {
+                $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+            }
+            rmdir($dir);
+        }
+        rmdir_recursive($tmpDir);
 
-        echo json_encode(['ok'=>true, 'msg'=>"$count Dateien aktualisiert"]);
+        $msg = "$count Dateien aktualisiert";
+        if (!empty($errors)) $msg .= ' (' . count($errors) . ' Fehler: ' . implode(', ', array_slice($errors, 0, 3)) . ')';
+
+        echo json_encode(['ok'=>true, 'msg'=>$msg]);
         exit;
     }
 
