@@ -152,14 +152,14 @@ try {
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS `" . TBL_BOARD_THEMEN . "` (
             id           INT AUTO_INCREMENT PRIMARY KEY,
-            projekt_id   INT NOT NULL,
             titel        VARCHAR(300) NOT NULL,
+            projekt_id   INT NULL,
             ref_typ      ENUM('eintrag','schritt') NULL,
             ref_id       INT NULL,
             rubrik_id    INT NULL,
             erstellt_von INT NULL,
             erstellt_am  DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (projekt_id)   REFERENCES `" . TBL_PROJEKTE . "`(id) ON DELETE CASCADE,
+            FOREIGN KEY (projekt_id)   REFERENCES `" . TBL_PROJEKTE . "`(id) ON DELETE SET NULL,
             FOREIGN KEY (rubrik_id)    REFERENCES `" . TBL_RUBRIKEN . "`(id) ON DELETE SET NULL,
             FOREIGN KEY (erstellt_von) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE SET NULL
         ) ENGINE=InnoDB;
@@ -184,6 +184,23 @@ try {
     $col = $pdo->query("SHOW COLUMNS FROM `" . TBL_KOMMENTARE . "` LIKE 'typ'")->fetch();
     if ($col && strpos($col['Type'], 'board') === false) {
         $pdo->exec("ALTER TABLE `" . TBL_KOMMENTARE . "` MODIFY COLUMN `typ` ENUM('eintrag','schritt','board') NOT NULL");
+    }
+
+    // board_themen: projekt_id auf NULL erlauben (eigenständiges Board)
+    $col = $pdo->query("SHOW COLUMNS FROM `" . TBL_BOARD_THEMEN . "` LIKE 'projekt_id'")->fetch();
+    if ($col && strpos($col['Type'], 'int') !== false && strpos(strtolower($col['Null']), 'no') !== false) {
+        try {
+            $pdo->exec("ALTER TABLE `" . TBL_BOARD_THEMEN . "` MODIFY COLUMN `projekt_id` INT NULL");
+            // Foreign Key auf CASCADE→SET NULL ändern
+            $fks = $pdo->query("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+                WHERE TABLE_NAME='" . TBL_BOARD_THEMEN . "' AND COLUMN_NAME='projekt_id'
+                AND CONSTRAINT_NAME != 'PRIMARY'")->fetchAll();
+            foreach ($fks as $fk) {
+                $pdo->exec("ALTER TABLE `" . TBL_BOARD_THEMEN . "` DROP FOREIGN KEY `{$fk['CONSTRAINT_NAME']}`");
+            }
+            $pdo->exec("ALTER TABLE `" . TBL_BOARD_THEMEN . "`
+                ADD FOREIGN KEY (projekt_id) REFERENCES `" . TBL_PROJEKTE . "`(id) ON DELETE SET NULL");
+        } catch (Exception $e) { /* ignorieren falls bereits NULL */ }
     }
 
     // ---- Spalten nachrüsten falls Tabellen bereits existieren ----

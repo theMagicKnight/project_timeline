@@ -29,26 +29,27 @@ async function ladeProjekt(id) {
 
 function renderMain(rubriken) {
   const main = document.getElementById('main');
-  const f    = aktivProjekt.farbe;
+  const f    = aktivProjekt?.farbe ?? '#7c6af7';
 
   main.innerHTML = `
     <div class="app-topbar">
       <div class="d-flex align-items-center gap-2 flex-wrap">
-        <h1 class="topbar-title mb-0">${esc(aktivProjekt.name)}</h1>
-        <span class="proj-badge" style="background:${f}22;color:${f}">Projekt</span>
-        <span class="recht-badge recht-${aktivesRecht}">${aktivesRecht}</span>
+        <h1 class="topbar-title mb-0">${esc(aktivProjekt?.name ?? 'Board')}</h1>
+        ${aktivProjekt ? `<span class="proj-badge" style="background:${f}22;color:${f}">Projekt</span>
+        <span class="recht-badge recht-${aktivesRecht}">${aktivesRecht}</span>` : ''}
       </div>
-      ${aktivProjekt.beschreibung?`<p class="topbar-desc mt-1 mb-0">${esc(aktivProjekt.beschreibung)}</p>`:''}
+      ${aktivProjekt?.beschreibung?`<p class="topbar-desc mt-1 mb-0">${esc(aktivProjekt.beschreibung)}</p>`:''}
       <div class="d-flex gap-2 mt-2 flex-wrap">
-        ${hatRecht('schreiben')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('rubrik',{projekt_id:${aktivProjekt.id}})"><i class="bi bi-plus-lg"></i> Rubrik</button>`:''}
-        ${hatRecht('verwalten')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('projekt_edit')"><i class="bi bi-pencil"></i> Bearbeiten</button>`:''}
-        ${IST_ADMIN?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('projekt_zugang')"><i class="bi bi-people"></i> Zugang</button>`:''}
-        ${IST_ADMIN?`<button class="btn btn-outline-danger btn-sm" onclick="loeschenProjekt(${aktivProjekt.id})"><i class="bi bi-trash"></i></button>`:''}
+        ${aktivProjekt && hatRecht('schreiben')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('rubrik',{projekt_id:${aktivProjekt.id}})"><i class="bi bi-plus-lg"></i> Rubrik</button>`:''}
+        ${aktivProjekt && hatRecht('verwalten')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('projekt_edit')"><i class="bi bi-pencil"></i> Bearbeiten</button>`:''}
+        ${aktivProjekt && IST_ADMIN?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('projekt_zugang')"><i class="bi bi-people"></i> Zugang</button>`:''}
+        ${aktivProjekt && IST_ADMIN?`<button class="btn btn-outline-danger btn-sm" onclick="loeschenProjekt(${aktivProjekt.id})"><i class="bi bi-trash"></i></button>`:''}
       </div>
     </div>
     <ul class="nav app-tabs" id="projektTabs">
+      ${aktivProjekt ? `
       <li class="nav-item">
-        <button class="nav-link ${aktiverTab==='matrix'?'active':''}" onclick="switchTab('matrix',this)">
+        <button class="nav-link ${aktiverTab==='matrix'?'active':''}" data-tab="matrix" onclick="switchTab('matrix',this)">
           <i class="bi bi-grid-3x3-gap me-1"></i><span class="d-none d-sm-inline">Aktivität</span>
         </button>
       </li>
@@ -56,21 +57,20 @@ function renderMain(rubriken) {
         <button class="nav-link ${aktiverTab==='rubriken'?'active':''}" data-tab="rubriken" onclick="switchTab('rubriken',this)">
           <i class="bi bi-folder me-1"></i><span class="d-none d-sm-inline">Rubriken</span>
         </button>
-      </li>
+      </li>` : ''}
       <li class="nav-item">
         <button class="nav-link ${aktiverTab==='board'?'active':''}" data-tab="board" onclick="switchTab('board',this)">
           <i class="bi bi-chat-dots me-1"></i><span class="d-none d-sm-inline">Board</span>
         </button>
       </li>
+      ${aktivProjekt ? `
       <li class="nav-item">
         <button class="nav-link ${aktiverTab==='timeline'?'active':''}" data-tab="timeline" onclick="switchTab('timeline',this)">
           <i class="bi bi-clock-history me-1"></i><span class="d-none d-sm-inline">Timeline</span>
         </button>
-      </li>
+      </li>` : ''}
     </ul>
     <div class="content" id="content"></div>`;
-
-  showTab(aktiverTab, rubriken);
 }
 
 function switchTab(tab, el) {

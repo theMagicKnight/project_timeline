@@ -1365,3 +1365,54 @@ body {
   opacity: .8;
 }
 .kommentar-indicator i { font-size: .7rem; }
+
+/* Board — Projekt-Badge und Allgemein-Badge */
+.board-projekt-badge {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: .72rem;
+  font-weight: 500;
+}
+.board-projekt-badge.gross { font-size: .82rem; padding: 4px 12px; }
+
+.board-frei-badge {
+  background: rgba(148,163,184,.12);
+  color: #94a3b8;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: .72rem;
+}
+
+/* Board — Projekt zuweisen Box */
+.board-projekt-zuweisen-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: .84rem;
+  color: var(--text3);
+  flex-wrap: wrap;
+}
+.board-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.board-filter-select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-family: inherit;
+  font-size: .82rem;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.board-filter-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}

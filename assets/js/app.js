@@ -5,7 +5,14 @@
 // ============================================================
 //  Start
 // ============================================================
-ladeSidebar();
+async function startApp() {
+  await ladeSidebar();
+  // Board direkt anzeigen — kein Projekt nötig
+  aktiverTab = 'board';
+  renderMain(null);
+  renderBoard();
+}
+startApp();
 checkVersion();
 
 // Matrix bei Fenstergrößenänderung neu rendern
