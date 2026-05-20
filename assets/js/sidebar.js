@@ -25,6 +25,7 @@ async function ladeProjekt(id) {
   aktiverTab   = 'matrix';
   await ladeSidebar();
   renderMain(data.rubriken);
+  showTab('matrix', data.rubriken);
 }
 
 function renderMain(rubriken) {
