@@ -19,3 +19,4 @@ define('TBL_ANHAENGE',         DB_PREFIX . 'anhaenge');
 define('TBL_KOMMENTARE',       DB_PREFIX . 'kommentare');
 define('TBL_REAKTIONEN',       DB_PREFIX . 'reaktionen');
 define('TBL_BOARD_THEMEN',     DB_PREFIX . 'board_themen');
+define('TBL_BOARD_GELESEN',    DB_PREFIX . 'board_gelesen');
