@@ -436,6 +436,12 @@ try {
                    p.farbe AS projekt_farbe,
                    (SELECT COUNT(*) FROM `" . TBL_KOMMENTARE . "` k WHERE k.typ='board' AND k.referenz_id=t.id) AS antwort_count,
                    (SELECT COUNT(*) FROM `" . TBL_KOMMENTARE . "` k WHERE k.typ='board' AND k.referenz_id=t.id AND k.ist_entscheidung=1) AS entscheidung_count,
+                   (SELECT COUNT(*) FROM `" . TBL_KOMMENTARE . "` k
+                    WHERE k.typ='board' AND k.referenz_id=t.id
+                    AND k.erstellt_am > COALESCE(
+                        (SELECT gelesen_am FROM `" . TBL_BOARD_GELESEN . "` WHERE thema_id=t.id AND benutzer_id=$ich[id]),
+                        '2000-01-01'
+                    )) AS neu_count,
                    r.name AS rubrik_name,
                    CASE t.ref_typ
                      WHEN 'eintrag' THEN (SELECT titel FROM `" . TBL_EINTRAEGE . "` WHERE id=t.ref_id)
@@ -450,7 +456,25 @@ try {
             ORDER BY t.erstellt_am DESC
         ");
         $meinRecht = $pid ? projektRecht($pid, $pdo) : 'schreiben';
-        echo json_encode(['themen' => $s->fetchAll(), 'mein_recht' => $meinRecht, 'meine_projekt_ids' => $meineIds]);
+        $themen    = $s->fetchAll();
+
+        // Gesamt ungelesene Themen zählen
+        $idListGel = count($meineIds) ? implode(',', array_map('intval', $meineIds)) : '0';
+        $whereGel  = istAdmin() ? "1=1" : "(bt.projekt_id IS NULL OR bt.projekt_id IN ($idListGel))";
+        $ungelesen = $pdo->query("
+            SELECT COUNT(DISTINCT bt.id) FROM `" . TBL_BOARD_THEMEN . "` bt
+            WHERE $whereGel
+            AND EXISTS (
+                SELECT 1 FROM `" . TBL_KOMMENTARE . "` k
+                WHERE k.typ='board' AND k.referenz_id=bt.id
+                AND k.erstellt_am > COALESCE(
+                    (SELECT gelesen_am FROM `" . TBL_BOARD_GELESEN . "` WHERE thema_id=bt.id AND benutzer_id={$ich['id']}),
+                    '2000-01-01'
+                )
+            )
+        ")->fetchColumn();
+
+        echo json_encode(['themen' => $themen, 'mein_recht' => $meinRecht, 'meine_projekt_ids' => $meineIds, 'ungelesen' => (int)$ungelesen]);
 
     } elseif ($action === 'board_thema_erstellen') {
         $pid   = isset($input['projekt_id']) && $input['projekt_id'] ? (int)$input['projekt_id'] : null;
@@ -503,7 +527,36 @@ try {
         ");
         $k->execute([$bid, $tid]); $kommentare = $k->fetchAll();
         $meinRecht = $thema['projekt_id'] ? projektRecht((int)$thema['projekt_id'], $pdo) : 'schreiben';
-        echo json_encode(['thema' => $thema, 'kommentare' => $kommentare, 'mein_recht' => $meinRecht]);
+
+        // Als gelesen markieren
+        $pdo->prepare("INSERT INTO `" . TBL_BOARD_GELESEN . "` (thema_id, benutzer_id, gelesen_am)
+            VALUES (?,?,NOW()) ON DUPLICATE KEY UPDATE gelesen_am=NOW()")
+            ->execute([$tid, $ich['id']]);
+
+        // Gesamte ungelesene Themen zählen (für Sidebar-Badge)
+        if (istAdmin()) {
+            $whereGel = "1=1";
+        } else {
+            $meineIdsQ = $pdo->prepare("SELECT projekt_id FROM `" . TBL_PROJEKT_BENUTZER . "` WHERE benutzer_id=?");
+            $meineIdsQ->execute([$ich['id']]);
+            $ids = $meineIdsQ->fetchAll(PDO::FETCH_COLUMN);
+            $idList = count($ids) ? implode(',', array_map('intval', $ids)) : '0';
+            $whereGel = "(bt.projekt_id IS NULL OR bt.projekt_id IN ($idList))";
+        }
+        $ungelesen = $pdo->query("
+            SELECT COUNT(DISTINCT bt.id) FROM `" . TBL_BOARD_THEMEN . "` bt
+            WHERE $whereGel
+            AND EXISTS (
+                SELECT 1 FROM `" . TBL_KOMMENTARE . "` k
+                WHERE k.typ='board' AND k.referenz_id=bt.id
+                AND k.erstellt_am > COALESCE(
+                    (SELECT gelesen_am FROM `" . TBL_BOARD_GELESEN . "` WHERE thema_id=bt.id AND benutzer_id={$ich['id']}),
+                    '2000-01-01'
+                )
+            )
+        ")->fetchColumn();
+
+        echo json_encode(['thema' => $thema, 'kommentare' => $kommentare, 'mein_recht' => $meinRecht, 'ungelesen_gesamt' => (int)$ungelesen]);
 
     } elseif ($action === 'board_kommentar_erstellen') {
         $tid    = (int)($input['thema_id'] ?? 0);
