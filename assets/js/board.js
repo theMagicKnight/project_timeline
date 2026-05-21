@@ -18,6 +18,9 @@ async function renderBoard() {
   // aktivesRecht setzen
   if (res.mein_recht && !aktivesRecht) aktivesRecht = IST_ADMIN ? 'admin' : res.mein_recht;
 
+  // Sidebar-Badge aktualisieren
+  boardBadgeSetzen(res.ungelesen || 0);
+
   // Projekte für Filter-Dropdown laden
   const projekte = await api('projekte_liste');
 
@@ -59,6 +62,7 @@ async function renderBoard() {
           </div>
           <div class="board-thema-stats">
             <span class="board-antworten"><i class="bi bi-chat me-1"></i>${t.antwort_count}</span>
+            ${t.neu_count > 0 ? `<span class="board-neu-badge">${t.neu_count} neu</span>` : ''}
             ${hatEnt?`<span class="board-entscheidung-badge"><i class="bi bi-check-circle-fill me-1"></i>${t.entscheidung_count}</span>`:''}
           </div>
         </div>`;
@@ -96,6 +100,11 @@ async function boardThemaOeffnen(themaId) {
 
   // Recht setzen
   if (data.mein_recht) aktivesRecht = IST_ADMIN ? 'admin' : data.mein_recht;
+
+  // Sidebar-Badge aktualisieren (Thema wurde als gelesen markiert)
+  if (typeof data.ungelesen_gesamt !== 'undefined') {
+    boardBadgeSetzen(data.ungelesen_gesamt);
+  }
 
   const baum        = baueBaum(kommentare);
   const hatEnt      = kommentare.some(k => k.ist_entscheidung == 1);
@@ -407,4 +416,22 @@ async function boardThemaVonRef(refTyp, refId, titel) {
 // ============================================================
 function reaktionKey(typ) {
   return {'👍':'gut','👎':'nein','❤️':'herz','🤔':'denk'}[typ] || 'gut';
+}
+
+function boardBadgeSetzen(anzahl) {
+  // Badge im Board-Tab (Navigation)
+  const tabs = document.querySelectorAll('[data-tab="board"]');
+  tabs.forEach(tab => {
+    let badge = tab.querySelector('.board-tab-badge');
+    if (anzahl > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'board-tab-badge';
+        tab.appendChild(badge);
+      }
+      badge.textContent = anzahl > 99 ? '99+' : anzahl;
+    } else if (badge) {
+      badge.remove();
+    }
+  });
 }
