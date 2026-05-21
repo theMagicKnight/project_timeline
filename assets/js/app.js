@@ -15,6 +15,13 @@ async function startApp() {
 startApp();
 checkVersion();
 
+// Ungelesene Board-Beiträge alle 60 Sekunden prüfen
+setInterval(async () => {
+  if (document.hidden) return; // Nicht wenn Tab nicht sichtbar
+  const res = await api('board_themen_liste', null, '').catch(() => null);
+  if (res?.ungelesen !== undefined) boardBadgeSetzen(res.ungelesen);
+}, 60000);
+
 // Matrix bei Fenstergrößenänderung neu rendern
 let resizeTimer;
 window.addEventListener('resize', () => {
