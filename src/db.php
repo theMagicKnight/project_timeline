@@ -165,6 +165,19 @@ try {
         ) ENGINE=InnoDB;
     ");
 
+    // 11. Board gelesen — welcher User hat welches Thema wann zuletzt gelesen
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS `" . TBL_BOARD_GELESEN . "` (
+            id           INT AUTO_INCREMENT PRIMARY KEY,
+            thema_id     INT NOT NULL,
+            benutzer_id  INT NOT NULL,
+            gelesen_am   DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_gelesen (thema_id, benutzer_id),
+            FOREIGN KEY (thema_id)    REFERENCES `" . TBL_BOARD_THEMEN . "`(id) ON DELETE CASCADE,
+            FOREIGN KEY (benutzer_id) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB;
+    ");
+
     // ---- Spalten nachrüsten falls Tabellen bereits existieren ----
     foreach ([TBL_RUBRIKEN, TBL_EINTRAEGE, TBL_SCHRITTE] as $tbl) {
         $cols = $pdo->query("SHOW COLUMNS FROM `{$tbl}` LIKE 'erstellt_von'")->fetchAll();
