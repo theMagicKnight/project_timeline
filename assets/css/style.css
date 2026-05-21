@@ -1416,3 +1416,36 @@ body {
   outline: none;
   border-color: var(--accent);
 }
+
+/* ---- Ungelesen-Badge ---- */
+.board-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f87171;
+  color: #fff;
+  font-size: .6rem;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  padding: 0 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.board-neu-badge {
+  font-size: .68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(248,113,113,.15);
+  color: #f87171;
+  white-space: nowrap;
+}
+
+/* Thema mit ungelesenen Beiträgen — leicht hervorgehoben */
+.board-thema-item:has(.board-neu-badge) {
+  border-left: 2px solid #f87171;
+}
