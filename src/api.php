@@ -118,7 +118,7 @@ try {
     } elseif ($action === 'projekt_benutzer_liste') {
         apiZugang('admin');
         $pid = (int)$_GET['id'];
-        $s = $pdo->prepare("SELECT pb.id, pb.recht, b.id as benutzer_id, b.name, b.email, b.rolle
+        $s = $pdo->prepare("SELECT pb.id, pb.recht, pb.board_recht, pb.rubrik_recht, b.id as benutzer_id, b.name, b.email, b.rolle
             FROM `" . TBL_PROJEKT_BENUTZER . "` pb JOIN `" . TBL_BENUTZER . "` b ON b.id=pb.benutzer_id
             WHERE pb.projekt_id=? ORDER BY b.name");
         $s->execute([$pid]);
@@ -126,12 +126,14 @@ try {
 
     } elseif ($action === 'projekt_benutzer_setzen') {
         apiZugang('admin');
-        $pid   = (int)$input['projekt_id'];
-        $bid   = (int)$input['benutzer_id'];
-        $recht = in_array($input['recht'] ?? '', ['lesen','schreiben','verwalten']) ? $input['recht'] : 'lesen';
-        $pdo->prepare("INSERT INTO `" . TBL_PROJEKT_BENUTZER . "` (projekt_id, benutzer_id, recht)
-                       VALUES (?,?,?) ON DUPLICATE KEY UPDATE recht=?")
-            ->execute([$pid, $bid, $recht, $recht]);
+        $pid         = (int)$input['projekt_id'];
+        $bid         = (int)$input['benutzer_id'];
+        $recht       = in_array($input['recht']        ?? '', ['lesen','schreiben','verwalten']) ? $input['recht']        : 'lesen';
+        $boardRecht  = in_array($input['board_recht']  ?? '', ['lesen','schreiben','verwalten']) ? $input['board_recht']  : 'schreiben';
+        $rubrikRecht = in_array($input['rubrik_recht'] ?? '', ['lesen','schreiben','verwalten']) ? $input['rubrik_recht'] : 'schreiben';
+        $pdo->prepare("INSERT INTO `" . TBL_PROJEKT_BENUTZER . "` (projekt_id, benutzer_id, recht, board_recht, rubrik_recht)
+                       VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE recht=?, board_recht=?, rubrik_recht=?")
+            ->execute([$pid, $bid, $recht, $boardRecht, $rubrikRecht, $recht, $boardRecht, $rubrikRecht]);
         echo json_encode(['ok' => true]);
 
     } elseif ($action === 'projekt_benutzer_entfernen') {
@@ -147,8 +149,8 @@ try {
         if (istAdmin()) {
             $rows = $pdo->query("SELECT * FROM `" . TBL_PROJEKTE . "` ORDER BY erstellt_am DESC")->fetchAll();
         } else {
-            $s = $pdo->prepare("SELECT p.*, pb.recht FROM `" . TBL_PROJEKTE . "` p
-                JOIN projekt_benutzer pb ON pb.projekt_id=p.id
+            $s = $pdo->prepare("SELECT p.*, pb.recht, pb.board_recht, pb.rubrik_recht FROM `" . TBL_PROJEKTE . "` p
+                JOIN `" . TBL_PROJEKT_BENUTZER . "` pb ON pb.projekt_id=p.id
                 WHERE pb.benutzer_id=? ORDER BY p.erstellt_am DESC");
             $s->execute([$ich['id']]);
             $rows = $s->fetchAll();
@@ -178,8 +180,9 @@ try {
         echo json_encode(['ok' => true]);
 
     } elseif ($action === 'projekt_detail') {
-        $pid   = (int)$_GET['id'];
-        $recht = projektRecht($pid, $pdo);
+        $pid        = (int)$_GET['id'];
+        $recht      = projektRecht($pid, $pdo);
+        $alleRechte = projektRechteAlle($pid, $pdo);
         if (!$recht) { http_response_code(403); echo json_encode(['error'=>'Kein Zugang']); exit; }
         $p = $pdo->prepare("SELECT * FROM `" . TBL_PROJEKTE . "` WHERE id=?"); $p->execute([$pid]); $projekt = $p->fetch();
 
@@ -214,7 +217,7 @@ try {
             }
             $rub['eintraege'] = $eintraege;
         }
-        echo json_encode(['projekt' => $projekt, 'rubriken' => $rubriken, 'mein_recht' => $recht]);
+        echo json_encode(['projekt' => $projekt, 'rubriken' => $rubriken, 'mein_recht' => $recht, 'alle_rechte' => $alleRechte]);
 
     // ===== RUBRIKEN ==========================================
 
