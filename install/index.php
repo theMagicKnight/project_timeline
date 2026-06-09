@@ -32,7 +32,7 @@ function githubRelease(): ?array {
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_USERAGENT      => 'ProjektTimeline-Installer',
-            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_TIMEOUT        => 6,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
@@ -845,10 +845,19 @@ async function testVerbindung() {
 // ---- GitHub prüfen ----
 async function githubPruefen() {
   const btn = document.querySelector('#github-check button');
-  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Prüfe GitHub…';
-  btn.disabled  = true;
+  btn.disabled = true;
+
+  // Animierter Status damit es sich nicht so lange anfühlt
+  const stati = ['Verbinde mit GitHub…', 'Lade Release-Infos…', 'Vergleiche Versionen…'];
+  let si = 0;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> ${stati[0]}`;
+  const statusInterval = setInterval(() => {
+    si = (si + 1) % stati.length;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> ${stati[si]}`;
+  }, 1800);
 
   const r    = await fetch('?ajax=github_check');
+  clearInterval(statusInterval);
   const data = await r.json();
 
   document.getElementById('update-result').style.display = 'block';
