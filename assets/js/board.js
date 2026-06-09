@@ -32,9 +32,10 @@ async function renderBoard() {
           ${projekte.map(p => `<option value="${p.id}" ${pid==p.id?'selected':''}>${esc(p.name)}</option>`).join('')}
         </select>
       </div>
+      ${hatRecht('schreiben','board') ? `
       <button class="btn btn-accent btn-sm" onclick="boardNeuesThema()">
         <i class="bi bi-plus-lg me-1"></i> Neues Thema
-      </button>
+      </button>` : ''}
     </div>`;
 
   if (!themen.length) {
@@ -77,13 +78,18 @@ function boardFilterProjekt(pid) {
   // Aktives Projekt wechseln oder deaktivieren
   if (pid) {
     api('projekt_detail', null, `&id=${pid}`).then(d => {
-      aktivProjekt = d.projekt;
-      aktivesRecht = IST_ADMIN ? 'admin' : d.mein_recht;
+      aktivProjekt       = d.projekt;
+      aktivesRecht       = IST_ADMIN ? 'admin' : d.mein_recht;
+      aktivesBoardRecht  = IST_ADMIN ? 'verwalten' : d.alle_rechte?.board_recht  ?? aktivesRecht;
+      aktivesRubrikRecht = IST_ADMIN ? 'verwalten' : d.alle_rechte?.rubrik_recht ?? aktivesRecht;
       renderBoard();
     });
   } else {
-    aktivProjekt = null;
-    aktivesRecht = 'schreiben'; // Standard für projektloses Board
+    aktivProjekt       = null;
+    // Projektloses Board: Admin = verwalten, normale Benutzer = lesen
+    aktivesRecht       = IST_ADMIN ? 'admin'     : 'lesen';
+    aktivesBoardRecht  = IST_ADMIN ? 'verwalten' : 'lesen';
+    aktivesRubrikRecht = IST_ADMIN ? 'verwalten' : 'lesen';
     renderBoard();
   }
 }
@@ -143,7 +149,7 @@ async function boardThemaOeffnen(themaId) {
   }
 
   // Rubrik aus Entscheidung erstellen
-  if (hatEnt && !thema.rubrik_id && thema.projekt_id && hatRecht('schreiben')) {
+  if (hatEnt && !thema.rubrik_id && thema.projekt_id && hatRecht('schreiben','board')) {
     html += `<div class="board-rubrik-erstellen-box">
       <i class="bi bi-check-circle-fill me-2" style="color:var(--green)"></i>
       <span>Entscheidung gefallen — Rubrik erstellen?</span>
@@ -158,20 +164,22 @@ async function boardThemaOeffnen(themaId) {
     ${!baum.length ? `<div class="kommentar-leer">Noch keine Beiträge. Sei der Erste!</div>` : renderBaumKnoten(baum, themaId, 0)}
   </div>`;
 
-  // Top-Level Formular
-  html += `<div class="board-antwort-form" id="board-form-top-${themaId}">
-    <div class="kommentar-input-wrap">
-      <div class="user-avatar-sm">${(AKTUELLER_BENUTZER.name||'?')[0].toUpperCase()}</div>
-      <textarea class="kommentar-input" id="board-input-top-${themaId}"
-        placeholder="Dein Beitrag… (Enter = Senden, Shift+Enter = Zeilenumbruch)"
-        rows="3" onkeydown="boardKommentarKeyDown(event,${themaId},null)"></textarea>
-    </div>
-    <div class="d-flex justify-content-end mt-1">
-      <button class="btn btn-accent btn-sm" onclick="boardKommentarSenden(${themaId},null)">
-        <i class="bi bi-send me-1"></i> Beitrag senden
-      </button>
-    </div>
-  </div>`;
+  // Top-Level Formular — nur für Benutzer mit Board-Schreibrecht
+  if (hatRecht('schreiben','board')) {
+    html += `<div class="board-antwort-form" id="board-form-top-${themaId}">
+      <div class="kommentar-input-wrap">
+        <div class="user-avatar-sm">${(AKTUELLER_BENUTZER.name||'?')[0].toUpperCase()}</div>
+        <textarea class="kommentar-input" id="board-input-top-${themaId}"
+          placeholder="Dein Beitrag… (Enter = Senden, Shift+Enter = Zeilenumbruch)"
+          rows="3" onkeydown="boardKommentarKeyDown(event,${themaId},null)"></textarea>
+      </div>
+      <div class="d-flex justify-content-end mt-1">
+        <button class="btn btn-accent btn-sm" onclick="boardKommentarSenden(${themaId},null)">
+          <i class="bi bi-send me-1"></i> Beitrag senden
+        </button>
+      </div>
+    </div>`;
+  }
 
   html += `</div>`;
   content.innerHTML = html;
@@ -212,7 +220,7 @@ function renderBaumKnoten(knoten, themaId, tiefe) {
             <span class="rd-autor">${esc(autorVorname)}</span>
             <span class="rd-datum">${datum}</span>
             ${istEnt?`<span class="rd-entscheidung-badge"><i class="bi bi-check-circle-fill me-1"></i>Entscheidung</span>`:''}
-            ${hatRecht('verwalten')?`
+            ${hatRecht('verwalten','board')?`
             <button class="rd-entscheidung-btn ${istEnt?'aktiv':''}"
               onclick="boardToggleEntscheidung(${k.id},${themaId})"
               title="${istEnt?'Entscheidung aufheben':'Als Entscheidung markieren'}">

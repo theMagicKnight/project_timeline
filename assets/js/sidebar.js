@@ -1,87 +1,93 @@
 /* ============================================================
-   detail.js — Eintrag-Detail, Schritt & Anhang im Modal
+   sidebar.js — Sidebar, Projekt laden, Tab-Steuerung
    ============================================================ */
 
-async function openEintragDetail(id){
-  const [data, anhaenge, kommentare] = await Promise.all([
-    api('projekt_detail', null, `&id=${aktivProjekt.id}`),
-    api('anhang_laden', {typ:'eintrag', referenz_id:id}),
-    api('kommentare_laden', {typ:'eintrag', referenz_id:id})
-  ]);
-  let e=null;
-  data.rubriken.forEach(r=>r.eintraege.forEach(x=>{if(x.id==id)e=x;}));
-  if(!e)return;
-  const steps=e.schritte||[];
-  setModalSize('lg');
-  document.getElementById('modal-title').textContent=e.titel;
-  document.getElementById('modal-body').innerHTML=`
-    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-      <span class="phase-badge phase-${e.phase}">${PHASEN[e.phase].icon} ${PHASEN[e.phase].label}</span>
-      ${e.phase_datum?`<span style="font-size:.76rem;color:var(--text3)">${fmtDate(e.phase_datum)}</span>`:''}
+async function ladeSidebar() {
+  const projekte = await api('projekte_liste');
+  const list = document.getElementById('proj-list');
+  if (!projekte.length) {
+    list.innerHTML = '<div class="px-3 py-2" style="color:var(--text3);font-size:.82rem">Keine Projekte zugewiesen</div>';
+    return;
+  }
+  list.innerHTML = projekte.map(p => `
+    <div class="proj-item ${aktivProjekt?.id==p.id?'active':''}" onclick="ladeProjekt(${p.id})">
+      <span class="proj-dot" style="background:${p.farbe}"></span>
+      <span class="proj-name">${esc(p.name)}</span>
+      ${p.recht ? `<span class="recht-badge recht-${p.recht}" style="font-size:.58rem;margin-left:auto">${p.recht}</span>` : ''}
+    </div>`).join('');
+}
+
+async function ladeProjekt(id, behaltTab = false) {
+  schliesseSidebar();
+  const tabVorher = aktiverTab; // aktuellen Tab merken
+  const data   = await api('projekt_detail', null, `&id=${id}`);
+  aktivProjekt       = data.projekt;
+  aktivesRecht       = IST_ADMIN ? 'admin'    : data.mein_recht;
+  aktivesBoardRecht  = IST_ADMIN ? 'verwalten': data.alle_rechte?.board_recht  ?? aktivesRecht;
+  aktivesRubrikRecht = IST_ADMIN ? 'verwalten': data.alle_rechte?.rubrik_recht ?? aktivesRecht;
+  // Tab beibehalten wenn gewünscht, sonst matrix
+  aktiverTab = (behaltTab && tabVorher && tabVorher !== 'board') ? tabVorher : 'matrix';
+  await ladeSidebar();
+  renderMain(data.rubriken);
+  showTab(aktiverTab, data.rubriken);
+}
+
+function renderMain(rubriken) {
+  const main = document.getElementById('main');
+  const f    = aktivProjekt?.farbe ?? '#7c6af7';
+
+  main.innerHTML = `
+    <div class="app-topbar">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <h1 class="topbar-title mb-0">${esc(aktivProjekt?.name ?? 'Board')}</h1>
+        ${aktivProjekt ? `<span class="proj-badge" style="background:${f}22;color:${f}">Projekt</span>
+        <span class="recht-badge recht-${aktivesRecht}">${aktivesRecht}</span>` : ''}
+      </div>
+      ${aktivProjekt?.beschreibung?`<p class="topbar-desc mt-1 mb-0">${esc(aktivProjekt.beschreibung)}</p>`:''}
+      <div class="d-flex gap-2 mt-2 flex-wrap">
+        ${aktivProjekt && hatRecht('schreiben')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('rubrik',{projekt_id:${aktivProjekt.id}})"><i class="bi bi-plus-lg"></i> Rubrik</button>`:''}
+        ${aktivProjekt && hatRecht('verwalten')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('projekt_edit')"><i class="bi bi-pencil"></i> Bearbeiten</button>`:''}
+        ${aktivProjekt && IST_ADMIN?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('projekt_zugang')"><i class="bi bi-people"></i> Zugang</button>`:''}
+        ${aktivProjekt && IST_ADMIN?`<button class="btn btn-outline-danger btn-sm" onclick="loeschenProjekt(${aktivProjekt.id})"><i class="bi bi-trash"></i></button>`:''}
+      </div>
     </div>
-    ${e.beschreibung?`<p style="color:var(--text2);font-size:.86rem;line-height:1.6">${esc(e.beschreibung)}</p>`:''}
-    <div class="matrix-title mb-2">Timeline-Schritte</div>
-    <div class="tl-track"><div class="tl-line"></div>
-      ${steps.map(s=>`<div class="tl-step">
-        <div class="tl-dot phase-${s.phase}" style="flex-shrink:0;margin-top:2px"></div>
-        <div><div class="d-flex align-items-center gap-2 flex-wrap">
-          <span class="phase-badge phase-${s.phase}">${PHASEN[s.phase].label}</span>
-          <span style="font-size:.86rem;font-weight:500">${esc(s.titel)}</span>
-          ${s.datum?`<span style="font-size:.73rem;color:var(--text3)">${fmtDate(s.datum)}</span>`:''}
-        </div>
-        ${s.beschreibung?`<div style="font-size:.78rem;color:var(--text3);margin-top:2px">${esc(s.beschreibung)}</div>`:''}
-        </div></div>`).join('')}
-    </div>
-    ${renderAnhaenge(anhaenge,'eintrag',e.id)}
-    ${renderDiskussion(kommentare,'eintrag',e.id)}`;
-  document.getElementById('modal-footer').innerHTML=`
-    <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Schließen</button>
-    ${hatRecht('schreiben')?`
-      <button class="btn btn-outline-secondary btn-sm" onclick="boardThemaVonRef('eintrag',${e.id},'${esc(e.titel).replace(/'/g,"\\'")}')">
-        <i class="bi bi-chat-dots"></i> Im Board
-      </button>
-      <button class="btn btn-outline-secondary btn-sm" onclick="zeigeAnhangFormImModal('eintrag',${e.id})">
-        <i class="bi bi-paperclip"></i> Anhang
-      </button>
-      <button class="btn btn-accent btn-sm" onclick="zeigeSchrittFormImModal(${e.id})">
-        <i class="bi bi-plus-lg"></i> Schritt
-      </button>`:''}`;
-  oeffneModal();
+    <ul class="nav app-tabs" id="projektTabs">
+      ${aktivProjekt ? `
+      <li class="nav-item">
+        <button class="nav-link ${aktiverTab==='matrix'?'active':''}" data-tab="matrix" onclick="switchTab('matrix',this)">
+          <i class="bi bi-grid-3x3-gap me-1"></i><span class="d-none d-sm-inline">Aktivität</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link ${aktiverTab==='rubriken'?'active':''}" data-tab="rubriken" onclick="switchTab('rubriken',this)">
+          <i class="bi bi-folder me-1"></i><span class="d-none d-sm-inline">Rubriken</span>
+        </button>
+      </li>` : ''}
+      <li class="nav-item">
+        <button class="nav-link ${aktiverTab==='board'?'active':''}" data-tab="board" onclick="switchTab('board',this)">
+          <i class="bi bi-chat-dots me-1"></i><span class="d-none d-sm-inline">Board</span>
+        </button>
+      </li>
+      ${aktivProjekt ? `
+      <li class="nav-item">
+        <button class="nav-link ${aktiverTab==='timeline'?'active':''}" data-tab="timeline" onclick="switchTab('timeline',this)">
+          <i class="bi bi-clock-history me-1"></i><span class="d-none d-sm-inline">Timeline</span>
+        </button>
+      </li>` : ''}
+    </ul>
+    <div class="content" id="content"></div>`;
 }
 
-function zeigeSchrittFormImModal(eintragId) {
-  document.getElementById('modal-title').textContent='Entwicklungsschritt hinzufügen';
-  document.getElementById('modal-body').innerHTML=formSchritt();
-  document.getElementById('modal-footer').innerHTML=`
-    <button class="btn btn-outline-secondary" onclick="openEintragDetail(${eintragId})">
-      <i class="bi bi-arrow-left me-1"></i> Zurück
-    </button>
-    <button class="btn btn-accent" onclick="speichernSchrittImModal(${eintragId})">Hinzufügen</button>`;
+function switchTab(tab, el) {
+  document.querySelectorAll('#projektTabs .nav-link').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  aktiverTab = tab;
+  api('projekt_detail', null, `&id=${aktivProjekt.id}`).then(d => showTab(tab, d.rubriken));
 }
 
-async function speichernSchrittImModal(eintragId) {
-  const t=document.getElementById('f-titel').value.trim();
-  if(!t)return notify('Bitte einen Titel eingeben','error');
-  await api('schritt_erstellen',{
-    eintrag_id:   eintragId,
-    titel:        t,
-    beschreibung: document.getElementById('f-desc').value,
-    phase:        document.getElementById('f-phase').value,
-    datum:        document.getElementById('f-datum').value,
-  });
-  notify('Schritt hinzugefügt');
-  await ladeProjekt(aktivProjekt.id, true);
-  openEintragDetail(eintragId);
-}
-
-function zeigeAnhangFormImModal(typ, refId) {
-  document.getElementById('modal-title').textContent='Anhang hinzufügen';
-  document.getElementById('modal-body').innerHTML=formAnhang(typ, refId);
-  document.getElementById('modal-footer').innerHTML=`
-    <button class="btn btn-outline-secondary" onclick="openEintragDetail(${refId})">
-      <i class="bi bi-arrow-left me-1"></i> Zurück
-    </button>
-    <button class="btn btn-accent" onclick="speichernAnhang('${typ}',${refId})">
-      <i class="bi bi-paperclip me-1"></i> Speichern
-    </button>`;
+function showTab(tab, rubriken) {
+  if      (tab==='matrix')   renderMatrix(rubriken);
+  else if (tab==='rubriken') renderRubriken(rubriken);
+  else if (tab==='board')    renderBoard();
+  else                       renderTimeline(rubriken);
 }

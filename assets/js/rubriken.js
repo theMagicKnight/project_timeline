@@ -18,9 +18,9 @@ function rubrikCard(r){
         ${r.erstellt_von_name?`<div class="rubrik-creator"><i class="bi bi-person-fill"></i> ${esc(vorname(r.erstellt_von_name))}</div>`:''}
       </div>
       <div class="d-flex gap-1 flex-shrink-0">
-        ${hatRecht('schreiben')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('eintrag',{rubrik_id:${r.id}})"><i class="bi bi-plus-lg"></i></button>`:''}
-        ${hatRecht('schreiben')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('rubrik_edit',${J(r)})"><i class="bi bi-pencil"></i></button>`:''}
-        ${hatRecht('verwalten')?`<button class="btn btn-outline-danger btn-sm" onclick="loeschenRubrik(${r.id})"><i class="bi bi-trash"></i></button>`:''}
+        ${hatRecht('schreiben','rubrik')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('eintrag',{rubrik_id:${r.id}})"><i class="bi bi-plus-lg"></i></button>`:''}
+        ${hatRecht('schreiben','rubrik')?`<button class="btn btn-outline-secondary btn-sm" onclick="openModal('rubrik_edit',${J(r)})"><i class="bi bi-pencil"></i></button>`:''}
+        ${hatRecht('verwalten','rubrik')?`<button class="btn btn-outline-danger btn-sm" onclick="loeschenRubrik(${r.id})"><i class="bi bi-trash"></i></button>`:''}
       </div>
     </div>
     <div>
@@ -47,8 +47,8 @@ function eintragRow(e){
       </div>
     </div>
     <div class="d-flex gap-1 flex-shrink-0">
-      ${hatRecht('schreiben')?`<button class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();openModal('eintrag_edit',${J(e)})"><i class="bi bi-pencil"></i></button>`:''}
-      ${hatRecht('verwalten')?`<button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();loeschenEintrag(${e.id})"><i class="bi bi-trash"></i></button>`:''}
+      ${hatRecht('schreiben','rubrik')?`<button class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation();openModal('eintrag_edit',${J(e)})"><i class="bi bi-pencil"></i></button>`:''}
+      ${hatRecht('verwalten','rubrik')?`<button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation();loeschenEintrag(${e.id})"><i class="bi bi-trash"></i></button>`:''}
     </div>
   </div>`;
 }

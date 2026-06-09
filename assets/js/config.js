@@ -26,8 +26,10 @@ const SPRACHEN = [
 const RECHTE_STUFEN = { lesen:1, schreiben:2, verwalten:3, admin:4 };
 
 // Globaler App-State
-let aktivProjekt  = null;
-let aktiverTab    = 'matrix';
-let aktivesRecht  = null;
-let bsModal       = null;
-let aktuellesTheme = AKTUELLER_BENUTZER.theme;
+let aktivProjekt    = null;
+let aktiverTab      = 'matrix';
+let aktivesRecht    = null;
+let aktivesBoardRecht  = null;
+let aktivesRubrikRecht = null;
+let bsModal         = null;
+let aktuellesTheme  = AKTUELLER_BENUTZER.theme;

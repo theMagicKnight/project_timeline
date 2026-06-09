@@ -27,20 +27,30 @@ $js_vars    = $js_vars    ?? [];
 
 <?php if ($js_modules): ?>
 <!-- Projekt-Timeline JS-Module -->
-<script src="<?= $base_path ?? '' ?>assets/js/config.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/api.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/auth.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/sidebar.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/matrix.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/rubriken.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/timeline.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/board.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/anhaenge.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/diskussion.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/detail.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/modals.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/crud.js"></script>
-<script src="<?= $base_path ?? '' ?>assets/js/app.js"></script>
+<?php
+// Cache-Busting: Versionsnummer an alle JS-Dateien anhängen
+$_v = '';
+$_vf = __DIR__ . '/../version.json';
+if (file_exists($_vf)) {
+    $_vd = json_decode(file_get_contents($_vf), true);
+    $_v  = '?v=' . ($_vd['version'] ?? '1.0.0');
+}
+?>
+<script src="<?= ($base_path ?? '') ?>assets/js/config.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/api.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/auth.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/sidebar.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/matrix.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/rubriken.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/timeline.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/board.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/anhaenge.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/diskussion.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/detail.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/modals.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/crud.js<?= $_v ?>"></script>
+<script src="<?= ($base_path ?? '') ?>assets/js/app.js<?= $_v ?>"></script>
 <?php endif; ?>
 
 </body>
+</html>

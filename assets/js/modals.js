@@ -229,21 +229,35 @@ async function ladeProjektZugang(){
     </div>
     <div class="table-responsive mb-4">
       <table class="user-table">
-        <thead><tr><th>Name</th><th>E-Mail</th><th>Recht</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th>Gesamt</th><th>Board</th><th>Rubriken</th><th></th></tr></thead>
         <tbody>
           ${zugang.length ? zugang.map(z=>`<tr>
-            <td>${esc(z.name)}</td>
-            <td style="color:var(--text2);font-size:.82rem">${esc(z.email)}</td>
             <td>
-              <select class="form-select form-select-sm" style="width:130px"
-                onchange="rechtAendern(${z.benutzer_id},this.value)">
+              <div style="font-weight:500">${esc(z.name)}</div>
+              <div style="color:var(--text3);font-size:.76rem">${esc(z.email)}</div>
+            </td>
+            <td>
+              <select class="form-select form-select-sm" style="width:110px"
+                onchange="rechtAendern(${z.benutzer_id},'recht',this.value)">
                 ${['lesen','schreiben','verwalten'].map(r=>`<option value="${r}" ${z.recht===r?'selected':''}>${r}</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <select class="form-select form-select-sm" style="width:110px"
+                onchange="rechtAendern(${z.benutzer_id},'board_recht',this.value)">
+                ${['lesen','schreiben','verwalten'].map(r=>`<option value="${r}" ${(z.board_recht||z.recht)===r?'selected':''}>${r}</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <select class="form-select form-select-sm" style="width:110px"
+                onchange="rechtAendern(${z.benutzer_id},'rubrik_recht',this.value)">
+                ${['lesen','schreiben','verwalten'].map(r=>`<option value="${r}" ${(z.rubrik_recht||z.recht)===r?'selected':''}>${r}</option>`).join('')}
               </select>
             </td>
             <td class="text-end">
               <button class="btn btn-outline-danger btn-sm" onclick="zuganEntfernen(${z.benutzer_id})"><i class="bi bi-person-dash"></i></button>
             </td>
-          </tr>`).join('') : '<tr><td colspan="4" class="text-center" style="color:var(--text3)">Kein Benutzer zugewiesen</td></tr>'}
+          </tr>`).join('') : '<tr><td colspan="5" class="text-center" style="color:var(--text3)">Kein Benutzer zugewiesen</td></tr>'}
         </tbody>
       </table>
     </div>
@@ -255,10 +269,24 @@ async function ladeProjektZugang(){
           ${nichtZugeordnet.map(b=>`<option value="${b.id}">${esc(b.name)} (${esc(b.email)})</option>`).join('')}
         </select>
       </div>
-      <div><label class="form-label">Recht</label>
+      <div><label class="form-label">Gesamt</label>
         <select class="form-select" id="zug-recht">
           <option value="lesen">Lesen</option>
-          <option value="schreiben">Schreiben</option>
+          <option value="schreiben" selected>Schreiben</option>
+          <option value="verwalten">Verwalten</option>
+        </select>
+      </div>
+      <div><label class="form-label">Board</label>
+        <select class="form-select" id="zug-board-recht">
+          <option value="lesen">Lesen</option>
+          <option value="schreiben" selected>Schreiben</option>
+          <option value="verwalten">Verwalten</option>
+        </select>
+      </div>
+      <div><label class="form-label">Rubriken</label>
+        <select class="form-select" id="zug-rubrik-recht">
+          <option value="lesen">Lesen</option>
+          <option value="schreiben" selected>Schreiben</option>
           <option value="verwalten">Verwalten</option>
         </select>
       </div>
@@ -266,8 +294,18 @@ async function ladeProjektZugang(){
     </div>` : '<div style="color:var(--text3);font-size:.84rem">Alle Benutzer haben bereits Zugang.</div>'}`;
 }
 
-async function rechtAendern(bid, recht){
-  await api('projekt_benutzer_setzen',{projekt_id:aktivProjekt.id,benutzer_id:bid,recht});
+async function rechtAendern(bid, feld, wert){
+  // Aktuellen Stand laden — korrekter Endpunkt
+  const zugang = await api('projekt_benutzer_liste', null, `&id=${aktivProjekt.id}`);
+  const z = zugang.find(x => x.benutzer_id == bid);
+  if (!z) { notify('Benutzer nicht gefunden', 'error'); return; }
+  await api('projekt_benutzer_setzen',{
+    projekt_id:   aktivProjekt.id,
+    benutzer_id:  bid,
+    recht:        feld==='recht'        ? wert : z.recht,
+    board_recht:  feld==='board_recht'  ? wert : (z.board_recht  || z.recht),
+    rubrik_recht: feld==='rubrik_recht' ? wert : (z.rubrik_recht || z.recht),
+  });
   notify('Recht aktualisiert');
 }
 async function zuganEntfernen(bid){
@@ -277,9 +315,17 @@ async function zuganEntfernen(bid){
   ladeProjektZugang();
 }
 async function zuganHinzufuegen(){
-  const bid=document.getElementById('zug-benutzer').value;
-  const recht=document.getElementById('zug-recht').value;
-  await api('projekt_benutzer_setzen',{projekt_id:aktivProjekt.id,benutzer_id:parseInt(bid),recht});
+  const bid         = document.getElementById('zug-benutzer').value;
+  const recht       = document.getElementById('zug-recht').value;
+  const boardRecht  = document.getElementById('zug-board-recht').value;
+  const rubrikRecht = document.getElementById('zug-rubrik-recht').value;
+  await api('projekt_benutzer_setzen',{
+    projekt_id:   aktivProjekt.id,
+    benutzer_id:  parseInt(bid),
+    recht,
+    board_recht:  boardRecht,
+    rubrik_recht: rubrikRecht,
+  });
   notify('Zugang vergeben');
   ladeProjektZugang();
 }

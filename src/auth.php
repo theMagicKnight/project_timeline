@@ -29,10 +29,21 @@ function projektRecht(int $projektId, \PDO $pdo): ?string {
     if (!$b) return null;
     if ($b['rolle'] === 'admin') return 'admin';
 
-    $s = $pdo->prepare("SELECT recht FROM `" . TBL_PROJEKT_BENUTZER . "` WHERE projekt_id=? AND benutzer_id=?");
+    $s = $pdo->prepare("SELECT recht, board_recht, rubrik_recht FROM `" . TBL_PROJEKT_BENUTZER . "` WHERE projekt_id=? AND benutzer_id=?");
     $s->execute([$projektId, $b['id']]);
     $row = $s->fetch();
     return $row ? $row['recht'] : null;
+}
+
+// ---- Alle Rechte eines Benutzers für ein Projekt ----
+function projektRechteAlle(int $projektId, \PDO $pdo): ?array {
+    $b = aktuellerBenutzer();
+    if (!$b) return null;
+    if ($b['rolle'] === 'admin') return ['recht' => 'admin', 'board_recht' => 'verwalten', 'rubrik_recht' => 'verwalten'];
+
+    $s = $pdo->prepare("SELECT recht, board_recht, rubrik_recht FROM `" . TBL_PROJEKT_BENUTZER . "` WHERE projekt_id=? AND benutzer_id=?");
+    $s->execute([$projektId, $b['id']]);
+    return $s->fetch() ?: null;
 }
 
 // ---- Recht >= Mindest-Recht? ----

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/Version-1.6.4-7c6af7?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.6.0-7c6af7?style=flat-square)
 ![PHP](https://img.shields.io/badge/PHP-7.1+-blue?style=flat-square)
 ![MySQL](https://img.shields.io/badge/MySQL-5.7+-orange?style=flat-square)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple?style=flat-square)
@@ -32,10 +32,6 @@ https://deinedomain.de/projekt_timeline/install/
 ```
 
 ---
-
-| **1.6.4** | 2026-05-23 | Board-Rechte feingranular, Cache-Busting, Bugfixes |
-| **1.6.3** | 2026-05-21 | Board eigenständig, projektübergreifend, Ungelesen-Badge |
-| **1.6.2** | 2026-05-19 | Board Mobile-Optimierung, Reddit-Style |
 
 ## Features
 

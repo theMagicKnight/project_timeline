@@ -71,7 +71,8 @@ async function speichernSchrittImModal(eintragId) {
   });
   notify('Schritt hinzugefügt');
   await ladeProjekt(aktivProjekt.id, true);
-  openEintragDetail(eintragId);
+  // Kurz warten bis renderMain fertig ist, dann Modal wieder öffnen
+  setTimeout(() => openEintragDetail(eintragId), 50);
 }
 
 function zeigeAnhangFormImModal(typ, refId) {

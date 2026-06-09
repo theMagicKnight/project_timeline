@@ -48,6 +48,8 @@ try {
             projekt_id   INT NOT NULL,
             benutzer_id  INT NOT NULL,
             recht        ENUM('lesen','schreiben','verwalten') DEFAULT 'lesen',
+            board_recht  ENUM('lesen','schreiben','verwalten') DEFAULT 'schreiben',
+            rubrik_recht ENUM('lesen','schreiben','verwalten') DEFAULT 'schreiben',
             UNIQUE KEY uq_pb (projekt_id, benutzer_id),
             FOREIGN KEY (projekt_id)  REFERENCES `" . TBL_PROJEKTE . "`(id) ON DELETE CASCADE,
             FOREIGN KEY (benutzer_id) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE CASCADE
@@ -225,6 +227,15 @@ try {
                 ADD FOREIGN KEY (erstellt_von) REFERENCES `" . TBL_BENUTZER . "`(id) ON DELETE SET NULL
             ");
         }
+    }
+
+    // board_recht + rubrik_recht nachrüsten
+    $col = $pdo->query("SHOW COLUMNS FROM `" . TBL_PROJEKT_BENUTZER . "` LIKE 'board_recht'")->fetch();
+    if (!$col) {
+        $pdo->exec("ALTER TABLE `" . TBL_PROJEKT_BENUTZER . "`
+            ADD COLUMN `board_recht`  ENUM('lesen','schreiben','verwalten') DEFAULT 'schreiben',
+            ADD COLUMN `rubrik_recht` ENUM('lesen','schreiben','verwalten') DEFAULT 'schreiben'
+        ");
     }
 
 } catch (PDOException $e) {

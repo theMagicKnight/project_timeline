@@ -7,7 +7,11 @@
 // ============================================================
 async function startApp() {
   await ladeSidebar();
-  // Board direkt anzeigen — kein Projekt nötig
+  // Rechte beim Start setzen — projektloses Board
+  aktivesRecht       = IST_ADMIN ? 'admin'     : 'lesen';
+  aktivesBoardRecht  = IST_ADMIN ? 'verwalten' : 'lesen';
+  aktivesRubrikRecht = IST_ADMIN ? 'verwalten' : 'lesen';
+  // Board direkt anzeigen
   aktiverTab = 'board';
   renderMain(null);
   renderBoard();

@@ -2,10 +2,20 @@
    api.js — API-Wrapper, Hilfsfunktionen, Rechte
    ============================================================ */
 
-function hatRecht(mindest) {
-  const ist  = RECHTE_STUFEN[aktivesRecht] ?? 0;
-  const mind = RECHTE_STUFEN[mindest] ?? 99;
-  return ist >= mind || IST_ADMIN;
+function hatRecht(mindest, bereich = null) {
+  const STUFEN = { lesen:1, schreiben:2, verwalten:3, admin:4 };
+  let istRecht = aktivesRecht;
+
+  // Bereich-spezifisches Recht verwenden falls gesetzt
+  if (bereich === 'board'  && aktivesBoardRecht)  istRecht = aktivesBoardRecht;
+  if (bereich === 'rubrik' && aktivesRubrikRecht) istRecht = aktivesRubrikRecht;
+
+  // Admin hat immer alle Rechte
+  if (IST_ADMIN) return true;
+
+  const ist  = STUFEN[istRecht] ?? 0;
+  const mind = STUFEN[mindest]  ?? 99;
+  return ist >= mind;
 }
 
 function esc(s) {

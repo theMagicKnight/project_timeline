@@ -32,8 +32,17 @@ $body_class = $body_class ?? '';
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
+<?php
+// Cache-Busting
+$_vcss = '';
+$_vfcss = __DIR__ . '/../version.json';
+if (file_exists($_vfcss)) {
+    $_vdcss = json_decode(file_get_contents($_vfcss), true);
+    $_vcss  = '?v=' . ($_vdcss['version'] ?? '1.0.0');
+}
+?>
   <!-- App CSS -->
-  <link rel="stylesheet" href="<?= $base_path ?? '' ?>assets/css/style.css">
+  <link rel="stylesheet" href="<?= ($base_path ?? '') ?>assets/css/style.css<?= $_vcss ?>">
 
   <!-- Highlight.js — Syntax Highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
