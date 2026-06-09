@@ -28,17 +28,17 @@ async function speichernRubrik(pid){
   const n=document.getElementById('f-name').value.trim();
   if(!n)return notify('Name eingeben','error');
   await api('rubrik_erstellen',{projekt_id:pid,name:n,beschreibung:document.getElementById('f-desc').value});
-  schliesseModal();notify('Rubrik erstellt');ladeProjekt(pid);
+  schliesseModal();notify('Rubrik erstellt');ladeProjekt(pid, true);
 }
 async function speichernRubrikEdit(id){
   const n=document.getElementById('f-name').value.trim();
   if(!n)return notify('Name eingeben','error');
   await api('rubrik_aktualisieren',{id,name:n,beschreibung:document.getElementById('f-desc').value});
-  schliesseModal();notify('Rubrik gespeichert');ladeProjekt(aktivProjekt.id);
+  schliesseModal();notify('Rubrik gespeichert');ladeProjekt(aktivProjekt.id, true);
 }
 async function loeschenRubrik(id){
   if(!confirm('Rubrik löschen?'))return;
-  await api('rubrik_loeschen',{id});notify('Rubrik gelöscht');ladeProjekt(aktivProjekt.id);
+  await api('rubrik_loeschen',{id});notify('Rubrik gelöscht');ladeProjekt(aktivProjekt.id, true);
 }
 
 // ============================================================
@@ -48,17 +48,17 @@ async function speichernEintrag(rid){
   const t=document.getElementById('f-titel').value.trim();
   if(!t)return notify('Titel eingeben','error');
   await api('eintrag_erstellen',{rubrik_id:rid,titel:t,beschreibung:document.getElementById('f-desc').value,phase:document.getElementById('f-phase').value,phase_datum:document.getElementById('f-datum').value,farbe:document.getElementById('f-farbe').value});
-  schliesseModal();notify('Eintrag erstellt');ladeProjekt(aktivProjekt.id);
+  schliesseModal();notify('Eintrag erstellt');ladeProjekt(aktivProjekt.id, true);
 }
 async function speichernEintragEdit(id){
   const t=document.getElementById('f-titel').value.trim();
   if(!t)return notify('Titel eingeben','error');
   await api('eintrag_aktualisieren',{id,titel:t,beschreibung:document.getElementById('f-desc').value,phase:document.getElementById('f-phase').value,phase_datum:document.getElementById('f-datum').value,farbe:document.getElementById('f-farbe').value});
-  schliesseModal();notify('Eintrag gespeichert');ladeProjekt(aktivProjekt.id);
+  schliesseModal();notify('Eintrag gespeichert');ladeProjekt(aktivProjekt.id, true);
 }
 async function loeschenEintrag(id){
   if(!confirm('Eintrag löschen?'))return;
-  await api('eintrag_loeschen',{id});notify('Eintrag gelöscht');ladeProjekt(aktivProjekt.id);
+  await api('eintrag_loeschen',{id});notify('Eintrag gelöscht');ladeProjekt(aktivProjekt.id, true);
 }
 
 // ============================================================
@@ -68,11 +68,11 @@ async function speichernSchritt(eid){
   const t=document.getElementById('f-titel').value.trim();
   if(!t)return notify('Titel eingeben','error');
   await api('schritt_erstellen',{eintrag_id:eid,titel:t,beschreibung:document.getElementById('f-desc').value,phase:document.getElementById('f-phase').value,datum:document.getElementById('f-datum').value});
-  schliesseModal();notify('Schritt hinzugefügt');ladeProjekt(aktivProjekt.id);
+  schliesseModal();notify('Schritt hinzugefügt');ladeProjekt(aktivProjekt.id, true);
 }
 async function loeschenSchritt(id){
   if(!confirm('Schritt löschen?'))return;
-  await api('schritt_loeschen',{id});notify('Schritt gelöscht');ladeProjekt(aktivProjekt.id);
+  await api('schritt_loeschen',{id});notify('Schritt gelöscht');ladeProjekt(aktivProjekt.id, true);
 }
 
 // ============================================================
