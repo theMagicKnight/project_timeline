@@ -70,7 +70,7 @@ async function speichernSchrittImModal(eintragId) {
     datum:        document.getElementById('f-datum').value,
   });
   notify('Schritt hinzugefügt');
-  await ladeProjekt(aktivProjekt.id);
+  await ladeProjekt(aktivProjekt.id, true);
   openEintragDetail(eintragId);
 }
 
