@@ -15,6 +15,15 @@ async function startApp() {
   aktiverTab = 'board';
   renderMain(null);
   renderBoard();
+
+  // Update-Erfolg anzeigen
+  if (typeof APP_UPDATED !== 'undefined' && APP_UPDATED) {
+    setTimeout(() => {
+      notify('✓ App erfolgreich aktualisiert! Bitte Seite neu laden.', 'success');
+      // URL bereinigen ohne Reload
+      history.replaceState({}, '', 'index.php');
+    }, 500);
+  }
 }
 startApp();
 checkVersion();
@@ -75,12 +84,25 @@ function zeigeUpdateToast(version) {
   toast.innerHTML = `
     <span style="color:var(--accent)"><i class="bi bi-arrow-repeat"></i></span>
     <span>Neue Version <strong>${version}</strong> verfügbar</span>
-    <button onclick="aktualisiereApp('${version}')" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:inherit;font-size:.82rem;font-weight:500;cursor:pointer">Jetzt laden</button>
-    <button onclick="this.closest('#update-toast').remove()" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:1rem;padding:0 2px">✕</button>`;
+    <button onclick="updateJetzt('${version}')"
+      style="background:var(--accent);color:#fff;border:none;border-radius:8px;
+             padding:6px 14px;font-family:inherit;font-size:.82rem;
+             font-weight:500;cursor:pointer;white-space:nowrap">
+      <i class="bi bi-cloud-download me-1"></i>Jetzt updaten
+    </button>
+    <button onclick="this.closest('#update-toast').remove()"
+      style="background:transparent;border:none;color:var(--text3);
+             cursor:pointer;font-size:1rem;padding:0 2px">✕</button>`;
   document.body.appendChild(toast);
 }
 
 function aktualisiereApp(neueVersion) {
   localStorage.setItem('app_version', neueVersion);
   window.location.reload(true);
+}
+
+function updateJetzt(version) {
+  // Neue Version merken und direkt zum Auto-Update Modus
+  localStorage.setItem('app_version', version);
+  window.location.href = 'install/?auto=1';
 }

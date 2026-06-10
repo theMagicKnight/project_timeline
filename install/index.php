@@ -5,6 +5,150 @@
 // ============================================================
 session_start();
 
+// ============================================================
+//  AUTO-UPDATE MODUS (?auto=1) — direkt aus der App gestartet
+// ============================================================
+if (isset($_GET['auto']) && $_GET['auto'] == '1' && file_exists(CONFIG_FILE)) {
+    header('Content-Type: text/html; charset=utf-8');
+    ?>
+    <!DOCTYPE html>
+    <html lang="de" data-bs-theme="dark">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Update läuft…</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+      body { font-family: 'DM Sans', sans-serif; background:#0e0f14; color:#e8eaf0; min-height:100dvh; display:flex; align-items:center; justify-content:center; }
+      .update-box { background:#16181f; border:1px solid #2a2d38; border-radius:16px; padding:40px; max-width:480px; width:100%; text-align:center; }
+      .update-icon { font-size:3rem; margin-bottom:16px; }
+      .update-title { font-size:1.3rem; font-weight:600; margin-bottom:8px; }
+      .update-sub { color:#9296a8; font-size:.9rem; margin-bottom:24px; }
+      .step { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:8px; margin-bottom:8px; font-size:.85rem; text-align:left; }
+      .step.wait    { background:#1e2028; color:#9296a8; }
+      .step.active  { background:rgba(124,106,247,.1); border:1px solid rgba(124,106,247,.3); color:#7c6af7; }
+      .step.done    { background:rgba(52,211,153,.1); border:1px solid rgba(52,211,153,.3); color:#34d399; }
+      .step.error   { background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.3); color:#f87171; }
+      .spin { animation: spin .8s linear infinite; display:inline-block; }
+      @keyframes spin { to { transform:rotate(360deg); } }
+      .btn-start { background:#7c6af7; color:#fff; border:none; border-radius:8px; padding:12px 28px; font-size:.95rem; font-weight:500; cursor:pointer; margin-top:8px; }
+    </style>
+    </head>
+    <body>
+    <div class="update-box">
+      <div class="update-icon">🚀</div>
+      <div class="update-title">Update wird durchgeführt</div>
+      <div class="update-sub">Bitte warte — die App wird automatisch aktualisiert.</div>
+
+      <div id="steps">
+        <div class="step wait" id="s1"><i class="bi bi-circle me-2"></i>GitHub prüfen</div>
+        <div class="step wait" id="s2"><i class="bi bi-circle me-2"></i>Backup erstellen</div>
+        <div class="step wait" id="s3"><i class="bi bi-circle me-2"></i>Update herunterladen</div>
+        <div class="step wait" id="s4"><i class="bi bi-circle me-2"></i>Dateien aktualisieren</div>
+      </div>
+
+      <div id="result" style="display:none;margin-top:16px"></div>
+    </div>
+
+    <script>
+    async function autoUpdate() {
+      function step(id, status, text) {
+        const el = document.getElementById(id);
+        el.className = 'step ' + status;
+        const icons = { wait: 'bi-circle', active: 'bi-arrow-repeat spin', done: 'bi-check-circle-fill', error: 'bi-x-circle-fill' };
+        el.innerHTML = `<i class="bi ${icons[status]} me-2"></i>${text}`;
+      }
+
+      // Schritt 1: GitHub prüfen
+      step('s1', 'active', 'GitHub prüfen…');
+      const gh = await fetch('?ajax=github_check').then(r => r.json());
+      if (!gh.ok) {
+        step('s1', 'error', 'GitHub nicht erreichbar: ' + gh.msg);
+        showFehler('GitHub konnte nicht erreicht werden.');
+        return;
+      }
+      step('s1', 'done', `GitHub: Version ${gh.remote} gefunden`);
+
+      if (!gh.update) {
+        step('s2', 'done', 'Bereits aktuell');
+        step('s3', 'done', 'Kein Update nötig');
+        step('s4', 'done', 'Alles auf dem neuesten Stand');
+        showFertig('Bereits die neueste Version installiert!', false);
+        return;
+      }
+
+      // Schritt 2: Backup
+      step('s2', 'active', 'Backup erstellen…');
+      const bk = await fetch('?ajax=backup', {method:'POST'}).then(r => r.json());
+      if (!bk.ok) {
+        step('s2', 'error', 'Backup fehlgeschlagen: ' + bk.msg);
+        showFehler('Backup konnte nicht erstellt werden.');
+        return;
+      }
+      step('s2', 'done', 'Backup erstellt: ' + bk.msg);
+
+      // Schritt 3: Update herunterladen
+      step('s3', 'active', 'Update herunterladen…');
+      const up = await fetch('?ajax=update', {
+        method: 'POST',
+        body: new URLSearchParams({zip_url: gh.zip_url})
+      }).then(r => r.json());
+      if (!up.ok) {
+        step('s3', 'error', 'Download fehlgeschlagen: ' + up.msg);
+        showFehler('Update konnte nicht heruntergeladen werden.');
+        return;
+      }
+      step('s3', 'done', 'Heruntergeladen: ' + up.msg);
+
+      // Schritt 4: Fertig
+      step('s4', 'done', 'Dateien aktualisiert ✓');
+      showFertig('Update auf Version ' + gh.remote + ' erfolgreich!', true);
+    }
+
+    function showFertig(msg, neuladen) {
+      const r = document.getElementById('result');
+      r.style.display = 'block';
+      r.innerHTML = `
+        <div style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:#34d399;border-radius:8px;padding:12px 16px;font-size:.85rem;margin-bottom:12px">
+          <i class="bi bi-check-circle-fill me-2"></i>${msg}
+        </div>
+        ${neuladen ? `<div style="color:#9296a8;font-size:.82rem;margin-bottom:12px">Seite wird in 3 Sekunden neu geladen…</div>` : ''}
+        <button class="btn-start" onclick="window.location.href='../index.php'">
+          <i class="bi bi-rocket-takeoff me-2"></i>App starten
+        </button>`;
+      if (neuladen) {
+        let count = 3;
+        const iv = setInterval(() => {
+          count--;
+          const el = r.querySelector('div[style*="Seite wird"]');
+          if (el) el.textContent = `Seite wird in ${count} Sekunden neu geladen…`;
+          if (count <= 0) { clearInterval(iv); window.location.href = '../index.php?updated=1'; }
+        }, 1000);
+      }
+    }
+
+    function showFehler(msg) {
+      const r = document.getElementById('result');
+      r.style.display = 'block';
+      r.innerHTML = `
+        <div style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:#f87171;border-radius:8px;padding:12px 16px;font-size:.85rem;margin-bottom:12px">
+          <i class="bi bi-x-circle-fill me-2"></i>${msg}
+        </div>
+        <button class="btn-start" onclick="window.location.href='?'" style="background:#2a2d38">
+          <i class="bi bi-arrow-left me-2"></i>Zurück zum Update-Manager
+        </button>`;
+    }
+
+    // Automatisch starten
+    autoUpdate();
+    </script>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
 define('GITHUB_USER',    'theMagicKnight');
 define('GITHUB_REPO',    'project_timeline');
 define('GITHUB_API',     'https://api.github.com/repos/' . GITHUB_USER . '/' . GITHUB_REPO . '/releases/latest');

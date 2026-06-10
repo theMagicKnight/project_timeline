@@ -36,7 +36,8 @@ $js_vars    = [
     'rolle' => $ich['rolle'],
     'theme' => $theme,
   ],
-  'IST_ADMIN' => istAdmin(),
+  'IST_ADMIN'   => istAdmin(),
+  'APP_UPDATED' => isset($_GET['updated']) && $_GET['updated'] == '1',
 ];
 
 require_once __DIR__ . '/templates/header.php';
