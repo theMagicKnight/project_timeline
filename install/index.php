@@ -5,6 +5,15 @@
 // ============================================================
 session_start();
 
+// Pfad-Konstanten müssen vor allem anderen definiert werden
+define('GITHUB_USER',    'theMagicKnight');
+define('GITHUB_REPO',    'project_timeline');
+define('GITHUB_API',     'https://api.github.com/repos/' . GITHUB_USER . '/' . GITHUB_REPO . '/releases/latest');
+define('INSTALL_LOCK',   __DIR__ . '/../backups/.installed');
+define('CONFIG_FILE',    __DIR__ . '/../config.php');
+define('BACKUP_DIR',     __DIR__ . '/../backups');
+define('VERSION_FILE',   __DIR__ . '/../version.json');
+
 // ============================================================
 //  AUTO-UPDATE MODUS (?auto=1) — direkt aus der App gestartet
 // ============================================================
@@ -148,14 +157,6 @@ if (isset($_GET['auto']) && $_GET['auto'] == '1' && file_exists(CONFIG_FILE)) {
     <?php
     exit;
 }
-
-define('GITHUB_USER',    'theMagicKnight');
-define('GITHUB_REPO',    'project_timeline');
-define('GITHUB_API',     'https://api.github.com/repos/' . GITHUB_USER . '/' . GITHUB_REPO . '/releases/latest');
-define('INSTALL_LOCK',   __DIR__ . '/../backups/.installed');
-define('CONFIG_FILE',    __DIR__ . '/../config.php');
-define('BACKUP_DIR',     __DIR__ . '/../backups');
-define('VERSION_FILE',   __DIR__ . '/../version.json');
 
 // ---- Aktuelle lokale Version ----
 function lokaleVersion(): string {
